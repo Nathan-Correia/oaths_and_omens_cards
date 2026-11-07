@@ -1,0 +1,7 @@
+Card cost icons are coloured versions of the game's own outline icons:
+fish.svg  <- fish_1.svg       (from SVG Repo, svgrepo.com)
+wood.svg  <- log.svg          (from SVG Repo, svgrepo.com)
+clay.svg  <- jug_outline.svg
+ore.svg   <- iron_ingot.svg
+any.svg   - hexagon, original to this project.
+Check each SVG Repo icon's licence page before publishing.

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <clipPath id="hex"><path d="M256 20 460 138v236L256 492 52 374V138z"/></clipPath>
+  </defs>
+  <g clip-path="url(#hex)">
+    <rect x="0" y="0" width="256" height="256" fill="#3d7fae"/>
+    <rect x="256" y="0" width="256" height="256" fill="#b5583a"/>
+    <rect x="0" y="256" width="256" height="256" fill="#8a5a2e"/>
+    <rect x="256" y="256" width="256" height="256" fill="#6b7280"/>
+  </g>
+  <path fill="none" stroke="#2a221a" stroke-width="24" stroke-linejoin="round" d="M256 20 460 138v236L256 492 52 374V138z"/>
+  <path fill="none" stroke="#ece1c8" stroke-width="12" d="M256 58 427 157v198L256 454 85 355V157z"/>
+  <text x="256" y="368" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="bold" font-size="300" fill="#ece1c8" stroke="#2a221a" stroke-width="18" paint-order="stroke">?</text>
+</svg>

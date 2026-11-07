@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oaths & Omens Cards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  /* Local fonts from dafont.com (see fonts/ for each font's readme) */
+  @font-face { font-family: "Capitalis"; src: url("fonts/minicaps.ttf"); }
+  @font-face { font-family: "Augustus"; src: url("fonts/AUGUSTUS.TTF"); }
+  :root {
+    --ink: #1f1a14;
+    --ink-soft: #5e5140;
+    --frame: #1c1915;
+    --gold: #b8955a;
+    --gold-dark: #7d6234;
+    --parchment: #ece1c8;
+    --parchment-edge: #d6c6a2;
+    --chamfer: 1.6mm;
+
+    --fish: #3d7fae;
+    --clay: #b5583a;
+    --wood: #8a5a2e;
+    --ore:  #6b7280;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #e6e2da;
+    font-family: "EB Garamond", Georgia, serif;
+    color: var(--ink);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Fonts. Capitalis has no bold, so the god name is thickened with an
+     outline in the text colour; the card name stays plain. */
+  :root {
+    --f-god: "Capitalis", serif;   --w-god: 400; --s-god: 5.6mm;
+    --f-name: "Capitalis", serif;  --w-name: 400; --s-name: 4.2mm;
+    --f-rules: "Augustus", serif;  --s-rules: 3mm;
+    --stroke: 0.12mm;
+  }
+  .god { -webkit-text-stroke: var(--stroke) currentColor; }
+
+  .sheet {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6mm;
+    padding: 12mm 10mm;
+  }
+  .row { display: flex; flex-direction: column; gap: 1.5mm; }
+  .row-label {
+    font: 600 3.2mm/1 "EB Garamond", serif;
+    color: var(--ink-soft);
+  }
+  .row-cards { display: flex; flex-wrap: wrap; gap: 2mm; }
+
+  /* ---------- Card ---------- */
+  .card {
+    position: relative;
+    width: 63mm;
+    height: 88mm;
+    background: var(--frame);
+    border-radius: 3mm;
+    padding: 2.2mm;
+  }
+
+  .inner {
+    position: relative;
+    height: 100%;
+    border: 0.4mm solid var(--gold);
+    border-radius: 1.2mm;
+    overflow: hidden;
+  }
+
+  /* Art fills the whole inner frame; panels sit on top of it */
+  .art {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 50% 40%, #56606e 0%, #2e3540 55%, #1c2027 100%);
+    background-size: cover;
+    background-position: center;
+    display: grid;
+    place-items: center;
+  }
+  .art svg.emblem {
+    width: 18mm;
+    height: 18mm;
+    margin-bottom: 12mm;
+    fill: #fff;
+    opacity: 0.12;
+  }
+
+  /* Gold-edged parchment plates with chamfered corners.
+     Outer element is the gold edge, ::before is the parchment fill. */
+  .plate {
+    position: absolute;
+    left: 0.9mm;
+    right: 0.9mm;
+    background: var(--gold);
+  }
+  .plate::before {
+    content: "";
+    position: absolute;
+    inset: 0.35mm;
+    clip-path: inherit;
+    background:
+      radial-gradient(ellipse at center, var(--parchment) 55%, var(--parchment-edge) 100%);
+  }
+  .plate > * { position: relative; }
+
+
+  .title-bar {
+    top: 0.9mm;
+    height: 8.6mm;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2.2mm 0 2.4mm;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--chamfer)), calc(100% - var(--chamfer)) 100%, var(--chamfer) 100%, 0 calc(100% - var(--chamfer)));
+  }
+  .god {
+    font-family: var(--f-god);
+    font-weight: var(--w-god);
+    font-size: var(--s-god);
+    line-height: 1;
+    letter-spacing: 0.02em;
+    padding-top: 0.4mm;
+  }
+
+  .cost { display: flex; gap: 0.3mm; align-items: center; }
+  .cost { gap: 0.5mm; }
+  .cost img {
+    --s: 1;
+    height: calc(4.6mm * var(--s));
+    width: auto;
+    max-width: calc(6.4mm * var(--s));
+    object-fit: contain;
+  }
+  .cost img[alt="wood"] { --s: 0.9; }
+  .cost img[alt="ore"],
+  .cost img[alt="fish"] { --s: 0.95; }
+  .cost img[alt="any"] { height: 4.9mm; }
+  .hex-icons .cost img { --s: 1; height: 4.9mm; max-width: none; }
+  .cost .sym {
+    font-family: "Augustus", serif;
+    font-weight: 600;   /* same bold as <b> in the rules text */
+    font-size: 4.6mm;
+    line-height: 1;
+    position: relative;
+    top: -0.2mm;
+  }
+  .cost .sym.times {
+    font-family: "EB Garamond", serif;
+    font-weight: 600;
+    font-size: 4.2mm;
+    margin: 0 -0.35mm;   /* tuck N × icon closer together */
+  }
+
+  .text-panel {
+    bottom: 0.9mm;
+    height: 27mm;
+    padding: 2.4mm 2.6mm 2mm;
+    display: flex;
+    flex-direction: column;
+    clip-path: polygon(var(--chamfer) 0, calc(100% - var(--chamfer)) 0, 100% var(--chamfer), 100% 100%, 0 100%, 0 var(--chamfer));
+  }
+  .card-name {
+    display: flex;
+    align-items: center;
+    gap: 2mm;
+    font-family: var(--f-name);
+    font-weight: var(--w-name);
+    font-size: var(--s-name);
+    line-height: 1;
+    letter-spacing: 0.04em;
+  }
+  .card-name::before,
+  .card-name::after {
+    content: "";
+    flex: 1;
+    height: 0.2mm;
+    background: var(--gold-dark);
+  }
+
+  .text {
+    flex: 1;
+    min-height: 0;
+    margin-top: 1.6mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    overflow: hidden;
+  }
+  .rules {
+    font-family: var(--f-rules);
+    font-size: var(--s-rules);
+    line-height: 1.22;
+  }
+  .rules b { font-weight: 600; }
+  .flavor {
+    margin-top: 1mm;
+    font-style: italic;
+    font-size: 2.6mm;
+    line-height: 1.2;
+    color: var(--ink-soft);
+  }
+
+  @page { size: letter; margin: 0; }
+  @media print {
+    body { background: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="sheet" id="sheet"></div>
+
+<!-- Emblem placeholders (resource pictures live in images/resources) -->
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="e-bolt" viewBox="0 0 100 100">
+    <path d="M60 3 28 54h19L36 97 74 40H55L70 3z"/>
+  </symbol>
+  <symbol id="e-sun" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="19"/>
+    <path id="ray" d="M50 2l6 20H44z"/>
+    <use href="#ray" transform="rotate(45 50 50)"/>
+    <use href="#ray" transform="rotate(90 50 50)"/>
+    <use href="#ray" transform="rotate(135 50 50)"/>
+    <use href="#ray" transform="rotate(180 50 50)"/>
+    <use href="#ray" transform="rotate(225 50 50)"/>
+    <use href="#ray" transform="rotate(270 50 50)"/>
+    <use href="#ray" transform="rotate(315 50 50)"/>
+  </symbol>
+  <symbol id="e-moon" viewBox="0 0 100 100">
+    <path d="M58 6a44 44 0 1 0 36 66A36 36 0 1 1 58 6z"/>
+  </symbol>
+  <symbol id="e-laurel" viewBox="0 0 100 100">
+    <g id="branch">
+      <path d="M50 94C30 84 18 64 22 22" fill="none" stroke="#fff" stroke-width="2.5"/>
+      <ellipse cx="40" cy="86" rx="4" ry="9" transform="rotate(-60 40 86)"/>
+      <ellipse cx="30" cy="76" rx="4" ry="9" transform="rotate(-40 30 76)"/>
+      <ellipse cx="23" cy="63" rx="4" ry="9" transform="rotate(-22 23 63)"/>
+      <ellipse cx="20" cy="49" rx="4" ry="9" transform="rotate(-8 20 49)"/>
+      <ellipse cx="20" cy="35" rx="4" ry="9" transform="rotate(6 20 35)"/>
+      <ellipse cx="23" cy="21" rx="4" ry="9" transform="rotate(18 23 21)"/>
+      <ellipse cx="31" cy="70" rx="3.5" ry="8" transform="rotate(40 31 70)"/>
+      <ellipse cx="27" cy="54" rx="3.5" ry="8" transform="rotate(40 27 54)"/>
+      <ellipse cx="26" cy="39" rx="3.5" ry="8" transform="rotate(45 26 39)"/>
+    </g>
+    <use href="#branch" transform="translate(100 0) scale(-1 1)"/>
+  </symbol>
+</svg>
+
+<script>
+  // Cost lists resources in the order they should appear on the card.
+  // Set art to an image path to replace the placeholder emblem.
+  const cards = [
+    {
+      god: "Zeus",
+      name: "Smite",
+      emblem: "e-bolt",
+      art: null,
+      cost: ["N", "×", "any"],
+      rules: "Play during a battle you are in, Pay N resources (up to 3) to <b>kill N enemy units</b> in that battle."
+    },
+    {
+      god: "Apollo",
+      name: "Volley",
+      emblem: "e-sun",
+      art: null,
+      cost: ["wood", "wood", "ore"],
+      rules: "Play when a battle you are in begins, before the first round. <b>Roll 3 archer shots.</b>"
+    },
+    {
+      god: "Artemis",
+      name: "True Aim",
+      emblem: "e-moon",
+      art: null,
+      cost: ["wood", "fish"],
+      rules: "Play when a battle you are in begins, before archers roll. Your archers don't roll this battle. They instead <b>each score 1 kill</b> automatically."
+    },
+    {
+      god: "Nike",
+      name: "Victory",
+      emblem: "e-laurel",
+      art: null,
+      cost: ["clay", "ore", "any"],
+      rules: "Play at any time. <b>Gain 1 victory point.</b>"
+    }
+  ];
+
+  // Resource names become pictures; anything else (N, ×) is printed as text.
+  const resources = ["fish", "clay", "wood", "ore", "any"];
+  // Palettes swap in alternate icon files: resource -> file suffix (wood -> wood_ingame.svg).
+  // ingame: green wood, brown clay. filament: the 3D-printed token colours.
+  // hex / hexicon: filament-coloured hexagons, plain or with the resource drawn inside.
+  const all = suffix => Object.fromEntries(resources.map(r => [r, suffix]));
+  const palettes = {
+    ingame: { wood: "_ingame", clay: "_ingame", any: "_ingame" },
+    filament: all("_filament"),
+    hex: { ...all("_hex"), any: "_filament" },
+    hexicon: { ...all("_hexicon"), any: "_filament" }
+  };
+  const icon = (r, palette) => resources.includes(r)
+    ? `<img src="images/resources/${r}${palettes[palette]?.[r] ?? ""}.svg" alt="${r}" title="${r}">`
+    : `<span class="sym${r === "×" ? " times" : ""}">${r}</span>`;
+
+  const render = (c, palette) => `
+    <div class="card">
+      <div class="inner">
+        <div class="art" ${c.art ? `style="background-image:url('${c.art}')"` : ""}>
+          ${c.art ? "" : `<svg class="emblem"><use href="#${c.emblem}"/></svg>`}
+        </div>
+        <div class="plate title-bar">
+          <div class="god">${c.god}</div>
+          <div class="cost">${c.cost.map(r => icon(r, palette)).join("")}</div>
+        </div>
+        <div class="plate text-panel">
+          <div class="card-name">${c.name}</div>
+          <div class="text">
+            <p class="rules">${c.rules}</p>
+            ${c.flavor ? `<p class="flavor">${c.flavor}</p>` : ""}
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  const rows = [
+    { label: "In-game colours", palette: "ingame" },
+    { label: "Filament colours", palette: "filament" },
+    { label: "Filament hexagons", palette: "hex" },
+    { label: "Filament hexagons with icons", palette: "hexicon" }
+  ];
+
+  document.getElementById("sheet").innerHTML = rows.map(r => `
+    <div class="row">
+      <div class="row-label">${r.label}</div>
+      <div class="row-cards ${r.palette.startsWith("hex") ? "hex-icons" : ""}">
+        ${cards.map(c => render(c, r.palette)).join("")}
+      </div>
+    </div>`).join("");
+
+  // Shrink rules text until it fits the panel (long cards like Aphrodite).
+  document.fonts.ready.then(() => {
+    document.querySelectorAll(".text").forEach(box => {
+      const rules = box.querySelector(".rules");
+      let size = parseFloat(getComputedStyle(rules).fontSize);
+      while (box.scrollHeight > box.clientHeight && size > 8) {
+        rules.style.fontSize = (size -= 0.25) + "px";
+      }
+    });
+  });
+</script>
+</body>
+</html>

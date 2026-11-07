@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <path fill="#687079" d="M256 20 460 138v236L256 492 52 374V138z"/>
+  
+  <svg x="86" y="96" width="340" height="320" viewBox="150 188 300 190">
+  <polygon points="263.80,291.60 410.87,229.45 336.20,197.89 189.13,260.05" fill="none" stroke="#2a221a" stroke-width="9" stroke-linejoin="round"/>
+  <polygon points="263.80,285.09 395.46,229.45 336.20,204.40 204.54,260.05" fill="none" stroke="#2a221a" stroke-width="4" stroke-linejoin="round"/>
+  <polygon points="260.40,369.77 441.42,293.27 410.87,229.45 263.80,291.60" fill="none" stroke="#2a221a" stroke-width="9" stroke-linejoin="round"/>
+  <polygon points="266.81,360.55 433.30,290.19 407.93,237.20 269.63,295.65" fill="none" stroke="#2a221a" stroke-width="4" stroke-linejoin="round"/>
+  <polygon points="158.58,326.73 260.40,369.77 263.80,291.60 189.13,260.05" fill="none" stroke="#2a221a" stroke-width="9" stroke-linejoin="round"/>
+  <polygon points="166.61,323.61 254.78,360.88 257.62,295.51 192.16,267.84" fill="none" stroke="#2a221a" stroke-width="4" stroke-linejoin="round"/>
+</svg>
+  <path fill="none" stroke="#2a221a" stroke-width="24" stroke-linejoin="round" d="M256 20 460 138v236L256 492 52 374V138z"/>
+</svg>

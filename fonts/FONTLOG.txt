@@ -1,0 +1,19 @@
+FONTLOG.txt for Capitalis Minimalis 
+
+OFL Open Font License
+http://scripts.sil.org/OFL
+
+Fontfamily Capitalis Minimalis (minicaps) by Uwe Borchert 
+E-Mail: uwe.borchert@gmx.de
+
+ChangeLog
+
+28.09.2012 Version 1.2
+- added cent, modified "capital letters" M, W, X
+- removed problems ...
+
+11.09.2010 Version 1.1
+- added cedilla and [C|c]+cedilla
+
+07.01.2010 (Uwe Borchert) Version 1.0
+- inital unrelease ;-) "Capitalis Minimalis"
