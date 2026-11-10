@@ -154,6 +154,12 @@
   .heat td { width: 40px; height: 30px; border-radius: 3px; cursor: pointer; font-weight: 600; }
   .heat td.cur { outline: 2px solid var(--ink); outline-offset: -2px; }
   .heat th { color: var(--ink-soft); font-weight: 600; padding: 0 4px; }
+  .odds { display: flex; flex-wrap: wrap; gap: 6px 28px; align-items: center; }
+  .odds .row { gap: 12px; }
+  .odds .stepper input { width: 56px; }
+  .odds .reset { border: 1px solid var(--panel-edge); background: transparent; color: var(--ink-soft);
+    border-radius: 5px; padding: 5px 10px; font: 600 14px "EB Garamond", serif; cursor: pointer; }
+  .odds .reset:hover { border-color: var(--gold); }
   .rules li { margin-left: 18px; }
   .rules { font-size: 15px; color: var(--ink-soft); display: flex; flex-direction: column; gap: 3px; }
 </style>
@@ -185,6 +191,13 @@
       </div>
       <div class="total" id="defTotal"></div>
     </div>
+  </section>
+
+  <section class="panel">
+    <h2>Round roll</h2>
+    <p class="note">Chance each side's D20 roll deals 0, 1 or 2 kills per round. A side down to its last unit turns a 2-kill roll into 1 kill.</p>
+    <div class="odds" id="odds"></div>
+    <div class="total" id="oddsTotal"></div>
   </section>
 
   <section class="tiles" id="tiles"></section>
@@ -232,7 +245,7 @@
     <h2>Rules used</h2>
     <ul class="rules">
       <li><b>Before round 1:</b> every archer on both sides rolls once (11–20 = 1 kill). An outpost fires 1 shot and a capital fires 2 at the attacker (11–20 = 1 kill each). These all happen at the same time.</li>
-      <li><b>Each round:</b> each side rolls one D20. 1–5 = 0 kills, 6–15 = 1 kill, 16–20 = 2 kills (only 1 kill if that side is down to its last unit). Both sides' kills land at the same time.</li>
+      <li id="roundRule"></li>
       <li><b>Casualties:</b> infantry die first, then cavalry, then archers.</li>
       <li><b>Cavalry:</b> each cavalry death rolls 14–20 (35%) to dismount into a new infantry. That infantry is next in line, so a second kill from the same roll hits it.</li>
       <li><b>Kill experience</b> counts every unit removed, including cavalry that dismount.</li>
@@ -253,8 +266,14 @@ const STRUCT_NAME = { none: "open ground", outpost: "outpost", capital: "capital
 const tot = c => c[0] + c[1] + c[2];
 const ck = c => c.join(",");
 
+// Round roll chances for 0 / 1 / 2 kills, in percent (editable in the UI).
+const DEFAULT_ODDS = [25, 50, 25];
+const odds = DEFAULT_ODDS.slice();
+let ROLL = [0.25, 0.5, 0.25]; // normalised probabilities used by the simulation
+
 function rollDist(n) {
-  return n === 1 ? [[0, 0.25], [1, 0.75]] : [[0, 0.25], [1, 0.5], [2, 0.25]];
+  const [p0, p1, p2] = ROLL;
+  return n === 1 ? [[0, p0], [1, p1 + p2]] : [[0, p0], [1, p1], [2, p2]];
 }
 
 function binom(n, p) {
@@ -397,6 +416,65 @@ function rebuildInputs() {
   buildSide("def", "def");
   document.getElementById("struct").value = state.struct;
 }
+
+function buildOdds() {
+  const host = document.getElementById("odds");
+  host.innerHTML = "";
+  ["0 kills", "1 kill", "2 kills"].forEach((label, idx) => {
+    const row = document.createElement("div");
+    row.className = "row";
+    const inputId = `odds-${idx}`;
+    row.innerHTML = `<label for="${inputId}">${label}</label>
+      <span class="stepper">
+        <button type="button" aria-label="Lower chance of ${label}">−</button>
+        <input id="${inputId}" type="number" min="0" max="100" step="any" value="${+odds[idx].toFixed(1)}">
+        <button type="button" aria-label="Raise chance of ${label}">+</button>
+      </span>%`;
+    const [minus, plus] = row.querySelectorAll("button");
+    const input = row.querySelector("input");
+    const set = v => {
+      v = Math.max(0, Math.min(100, Math.round((+v || 0) * 10) / 10));
+      odds[idx] = v; input.value = v; oddsChanged();
+    };
+    minus.onclick = () => set(odds[idx] - 5);
+    plus.onclick = () => set(odds[idx] + 5);
+    input.onchange = () => set(input.value);
+    host.appendChild(row);
+  });
+  const presets = [
+    ["¼ / ½ / ¼", DEFAULT_ODDS],
+    ["⅓ / ⅓ / ⅓", [100 / 3, 100 / 3, 100 / 3]],
+    ["⅙ / ⅔ / ⅙", [100 / 6, 200 / 3, 100 / 6]],
+  ];
+  presets.forEach(([label, vals]) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "reset"; b.textContent = label;
+    b.onclick = () => { odds.splice(0, 3, ...vals); buildOdds(); oddsChanged(); };
+    host.appendChild(b);
+  });
+}
+
+function oddsChanged() {
+  const sum = odds[0] + odds[1] + odds[2];
+  const fmt = v => +v.toFixed(1);
+  const totalEl = document.getElementById("oddsTotal");
+  if (sum <= 0) {
+    ROLL = [1, 0, 0];
+    totalEl.innerHTML = `<span class="warn">All chances are 0 — treating every roll as 0 kills.</span>`;
+  } else {
+    ROLL = odds.map(v => v / sum);
+    totalEl.innerHTML = Math.abs(sum - 100) < 1e-6 ? `Total 100%` :
+      `<span class="warn">Total ${fmt(sum)}%</span> · scaled to ${ROLL.map(p => fmt(p * 100)).join(" / ")}%`;
+  }
+  const [p0, p1, p2] = ROLL.map(p => fmt(p * 100));
+  document.getElementById("roundRule").innerHTML =
+    `<b>Each round:</b> each side rolls one D20: ${p0}% chance of 0 kills, ${p1}% of 1 kill, ${p2}% of 2 kills (only 1 kill if that side is down to its last unit). Both sides' kills land at the same time.`;
+  heatCache = {};
+  clearTimeout(heatTimer);
+  heatTimer = setTimeout(renderHeat, 150);
+  schedule();
+}
+let heatTimer;
 
 document.getElementById("struct").onchange = e => { state.struct = e.target.value; renderHeat(); schedule(); };
 document.getElementById("swap").onclick = () => {
@@ -655,8 +733,8 @@ function renderHeatMark() {
 
 // ---------- Boot ----------
 rebuildInputs();
-renderHeat();
-render();
+buildOdds();
+oddsChanged(); // also schedules the heatmap and main render
 let rz;
 addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(render, 120); });
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { renderHeat(); render(); });
