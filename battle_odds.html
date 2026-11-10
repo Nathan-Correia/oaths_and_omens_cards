@@ -194,10 +194,11 @@
   </section>
 
   <section class="panel">
-    <h2>Round roll</h2>
-    <p class="note">Chance each side's D20 roll deals 0, 1 or 2 kills per round. A side down to its last unit turns a 2-kill roll into 1 kill.</p>
+    <h2>Dice odds</h2>
+    <p class="note">Chance each side's D20 roll deals 0, 1 or 2 kills per round. A side down to its last unit turns a 2-kill roll into 1 kill. Below that: each archer's opening-shot hit chance, and the chance a slain cavalry dismounts into infantry.</p>
     <div class="odds" id="odds"></div>
     <div class="total" id="oddsTotal"></div>
+    <div class="odds" id="unitOdds" style="margin-top:10px"></div>
   </section>
 
   <section class="tiles" id="tiles"></section>
@@ -244,10 +245,10 @@
   <section class="panel">
     <h2>Rules used</h2>
     <ul class="rules">
-      <li><b>Before round 1:</b> every archer on both sides rolls once (11–20 = 1 kill). An outpost fires 1 shot and a capital fires 2 at the attacker (11–20 = 1 kill each). These all happen at the same time.</li>
+      <li id="archerRule"></li>
       <li id="roundRule"></li>
       <li><b>Casualties:</b> infantry die first, then cavalry, then archers.</li>
-      <li><b>Cavalry:</b> each cavalry death rolls 14–20 (35%) to dismount into a new infantry. That infantry is next in line, so a second kill from the same roll hits it.</li>
+      <li id="cavRule"></li>
       <li><b>Kill experience</b> counts every unit removed, including cavalry that dismount.</li>
       <li>Not modelled: battles with 3+ players, the 12/24 unit caps on dismounted infantry, and what happens after (evictions, sending extra units home).</li>
     </ul>
@@ -257,9 +258,9 @@
 
 <script>
 // ---------- Rules ----------
-const P_ARCHER = 10 / 20;   // 11–20
+let P_ARCHER = 10 / 20;     // 11–20 (editable in the UI)
 const P_STRUCT = 10 / 20;   // 11–20
-const P_DISMOUNT = 7 / 20;  // 14–20
+let P_DISMOUNT = 7 / 20;    // 14–20 (editable in the UI)
 const SHOTS = { none: 0, outpost: 1, capital: 2 };
 const STRUCT_NAME = { none: "open ground", outpost: "outpost", capital: "capital" };
 
@@ -284,6 +285,13 @@ function binom(n, p) {
     c = c * (n - k) / (k + 1);
   }
   return out;
+}
+
+// Distribution of the sum of two independent kill counts.
+function convolve(a, b) {
+  const out = [];
+  for (const [ka, pa] of a) for (const [kb, pb] of b) out[ka + kb] = (out[ka + kb] || 0) + pa * pb;
+  return out.map((p, k) => [k, p || 0]);
 }
 
 // Apply k kills to composition [inf, cav, arch]; returns [{c, p, r}] where r = units removed.
@@ -363,10 +371,7 @@ function simulate(A0, D0, struct) {
   // Opening volley: archers both ways + tile shots at the attacker.
   states = step(states,
     s => binom(s.A[2], P_ARCHER),
-    s => {
-      // archers and tile shots share the same 50% chance, so they combine into one binomial
-      return binom(s.D[2] + SHOTS[struct], P_ARCHER);
-    });
+    s => convolve(binom(s.D[2], P_ARCHER), binom(SHOTS[struct], P_STRUCT)));
   let live = settle(states, 0);
   let round = 0;
   while (live.size && round < 2000) {
@@ -469,12 +474,54 @@ function oddsChanged() {
   const [p0, p1, p2] = ROLL.map(p => fmt(p * 100));
   document.getElementById("roundRule").innerHTML =
     `<b>Each round:</b> each side rolls one D20: ${p0}% chance of 0 kills, ${p1}% of 1 kill, ${p2}% of 2 kills (only 1 kill if that side is down to its last unit). Both sides' kills land at the same time.`;
+  probsChanged();
+}
+let heatTimer;
+function probsChanged() {
   heatCache = {};
+  killMemo.clear();
   clearTimeout(heatTimer);
   heatTimer = setTimeout(renderHeat, 150);
   schedule();
 }
-let heatTimer;
+
+// Archer hit chance and cavalry dismount chance, in percent.
+const unitOdds = { archer: 50, cav: 35 };
+function buildUnitOdds() {
+  const host = document.getElementById("unitOdds");
+  host.innerHTML = "";
+  [["archer", "Archer hit", "Default 50"], ["cav", "Cavalry dismount", "Default 35"]].forEach(([key, label, hint]) => {
+    const row = document.createElement("div");
+    row.className = "row";
+    const inputId = `unit-${key}`;
+    row.innerHTML = `<label for="${inputId}">${label} <small>${hint}</small></label>
+      <span class="stepper">
+        <button type="button" aria-label="Lower ${label} chance">−</button>
+        <input id="${inputId}" type="number" min="0" max="100" step="any" value="${+unitOdds[key].toFixed(1)}">
+        <button type="button" aria-label="Raise ${label} chance">+</button>
+      </span>%`;
+    const [minus, plus] = row.querySelectorAll("button");
+    const input = row.querySelector("input");
+    const set = v => {
+      v = Math.max(0, Math.min(100, Math.round((+v || 0) * 10) / 10));
+      unitOdds[key] = v; input.value = v; unitOddsChanged();
+    };
+    minus.onclick = () => set(unitOdds[key] - 5);
+    plus.onclick = () => set(unitOdds[key] + 5);
+    input.onchange = () => set(input.value);
+    host.appendChild(row);
+  });
+}
+function unitOddsChanged() {
+  P_ARCHER = unitOdds.archer / 100;
+  P_DISMOUNT = unitOdds.cav / 100;
+  const f = v => +v.toFixed(1);
+  document.getElementById("archerRule").innerHTML =
+    `<b>Before round 1:</b> every archer on both sides rolls once (${f(unitOdds.archer)}% chance of 1 kill). An outpost fires 1 shot and a capital fires 2 at the attacker (11–20 = 1 kill each). These all happen at the same time.`;
+  document.getElementById("cavRule").innerHTML =
+    `<b>Cavalry:</b> each cavalry death has a ${f(unitOdds.cav)}% chance to dismount into a new infantry. That infantry is next in line, so a second kill from the same roll hits it.`;
+  probsChanged();
+}
 
 document.getElementById("struct").onchange = e => { state.struct = e.target.value; renderHeat(); schedule(); };
 document.getElementById("swap").onclick = () => {
@@ -734,6 +781,8 @@ function renderHeatMark() {
 // ---------- Boot ----------
 rebuildInputs();
 buildOdds();
+buildUnitOdds();
+unitOddsChanged();
 oddsChanged(); // also schedules the heatmap and main render
 let rz;
 addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(render, 120); });
