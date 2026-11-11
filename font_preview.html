@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hex Letter Fonts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@800&family=Almendra:wght@700&family=Archivo+Black&family=Bebas+Neue&family=Cinzel:wght@900&family=Cinzel+Decorative:wght@900&family=Cormorant+SC:wght@700&family=EB+Garamond:wght@600;800&family=IM+Fell+English+SC&family=Josefin+Sans:wght@700&family=Marcellus+SC&family=MedievalSharp&family=Oswald:wght@700&family=Philosopher:wght@700&family=Pirata+One&family=Roboto+Slab:wght@800&family=Rubik:wght@800&family=Spectral+SC:wght@800&family=Uncial+Antiqua&display=swap" rel="stylesheet">
+<style>
+  @font-face { font-family: "Capitalis"; src: url("fonts/minicaps.ttf"); }
+  @font-face { font-family: "Augustus"; src: url("fonts/AUGUSTUS.TTF"); }
+  @font-face { font-family: "Diogenes"; src: url("fonts/DIOGENES.ttf"); }
+  @font-face { font-family: "Dominican"; src: url("fonts/DOMINICA.TTF"); }
+  @font-face { font-family: "Dominican SC"; src: url("fonts/DOMISC__.TTF"); }
+  @font-face { font-family: "Gelio Fasolada"; src: url("fonts/Gelio Fasolada.ttf"); }
+  @font-face { font-family: "Gelio Greek Diner"; src: url("fonts/Gelio Greek Diner.ttf"); }
+  @font-face { font-family: "Gelio Kleftiko"; src: url("fonts/Gelio Kleftiko.ttf"); }
+  @font-face { font-family: "Gelio Pasteli"; src: url("fonts/Gelio Pasteli.ttf"); }
+  @font-face { font-family: "Gelio Retsina"; src: url("fonts/Gelio Retsina.ttf"); }
+  @font-face { font-family: "Norse"; src: url("fonts/Norse.otf"); }
+  @font-face { font-family: "Norse Bold"; src: url("fonts/Norsebold.otf"); }
+  @font-face { font-family: "Roman SD"; src: url("fonts/Roman SD.ttf"); }
+
+  :root { --bg: #e6e2da; --ink: #1f1a14; --soft: #5e5140; --plate: #ece1c8; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: "EB Garamond", Georgia, serif; padding: 16px; }
+  h1 { font-size: 22px; font-weight: 600; }
+  p.note { color: var(--soft); margin: 4px 0 16px; }
+  section h2 { font-size: 15px; font-weight: 600; color: var(--soft); margin: 18px 0 6px; text-transform: uppercase; letter-spacing: .06em; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 8px; }
+  .font { background: var(--plate); border-radius: 6px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
+  .font .name { font-size: 14px; font-weight: 600; }
+  .font .name small { font-weight: 400; color: var(--soft); }
+  .big, .small { display: flex; align-items: center; gap: 4px; }
+  .big svg { width: 54px; height: 54px; }
+  .small svg { width: 19px; height: 19px; }
+  .small { gap: 2px; }
+</style>
+</head>
+<body>
+<h1>Hex letter fonts</h1>
+<p class="note">Black letters on the filament hexes. Top row is large; bottom row is roughly the size printed on the card.</p>
+<div id="out"></div>
+
+<script>
+  const groups = [
+    ["Your fonts folder", [
+      ["Capitalis", "", 400],
+      ["Capitalis", "bolded like the card god names", 400, 4.5],
+      ["Capitalis", "bolded more", 400, 9],
+      ["Augustus", "", 400], ["Diogenes", "", 400],
+      ["Dominican", "", 400], ["Dominican SC", "", 400], ["Roman SD", "", 400],
+      ["Norse", "", 400], ["Norse Bold", "", 400],
+      ["Gelio Fasolada", "", 400], ["Gelio Greek Diner", "", 400], ["Gelio Kleftiko", "", 400],
+      ["Gelio Pasteli", "", 400], ["Gelio Retsina", "", 400]
+    ]],
+    ["Classical / serif (Google Fonts)", [
+      ["Georgia", "current", 700], ["Cinzel", "", 900], ["Cinzel Decorative", "", 900],
+      ["Marcellus SC", "", 400], ["Cormorant SC", "", 700], ["EB Garamond", "", 800],
+      ["Spectral SC", "", 800], ["Alegreya SC", "", 800], ["IM Fell English SC", "", 400],
+      ["Roboto Slab", "", 800]
+    ]],
+    ["Medieval / decorative", [
+      ["Uncial Antiqua", "", 400], ["MedievalSharp", "", 400], ["Almendra", "", 700],
+      ["Pirata One", "", 400], ["Philosopher", "", 700]
+    ]],
+    ["Bold sans (most legible small)", [
+      ["Archivo Black", "", 400], ["Rubik", "", 800], ["Oswald", "", 700],
+      ["Bebas Neue", "", 400], ["Josefin Sans", "", 700], ["Arial Black", "system", 900],
+      ["Verdana", "system", 700], ["Trebuchet MS", "system", 700], ["Impact", "system", 400]
+    ]]
+  ];
+
+  const HEX = "M256 20 460 138v236L256 492 52 374V138z";
+  const INNER = "M256 58 427 157v198L256 454 85 355V157z";
+  const res = [["W", "#c4dd7e"], ["I", "#8a929b"], ["C", "#b78b67"], ["F", "#7ec8ea"]];
+  let uid = 0;
+
+  // stroke: outline in the letter colour to fake a bolder weight (the cards use
+  // -webkit-text-stroke 0.12mm on 5.6mm text, i.e. ~2% of the font size = 4.5 here).
+  const hex = (ch, fill, font, weight, stroke = 0) => {
+    const id = "c" + uid++;
+    const bg = fill
+      ? `<path fill="${fill}" d="${HEX}"/>`
+      : `<clipPath id="${id}"><path d="${HEX}"/></clipPath>
+         <g clip-path="url(#${id})">
+           <rect width="256" height="256" fill="#7ec8ea"/><rect x="256" width="256" height="256" fill="#b78b67"/>
+           <rect y="256" width="256" height="256" fill="#c4dd7e"/><rect x="256" y="256" width="256" height="256" fill="#8a929b"/>
+         </g>`;
+    return `<svg viewBox="0 0 512 512">${bg}
+      <path fill="none" stroke="#ece1c8" stroke-width="12" d="${INNER}"/>
+      <text x="256" y="256" dy="0.35em" text-anchor="middle" font-family="'${font}'" font-weight="${weight}"
+            font-size="210" fill="#2a221a"${stroke ? ` stroke="#2a221a" stroke-width="${stroke}" stroke-linejoin="round"` : ""}>${ch}</text>
+      <path fill="none" stroke="#2a221a" stroke-width="24" stroke-linejoin="round" d="${HEX}"/></svg>`;
+  };
+
+  const set = (font, weight, stroke) =>
+    res.map(([ch, fill]) => hex(ch, fill, font, weight, stroke)).join("") + hex("?", null, font, weight, stroke);
+
+  document.getElementById("out").innerHTML = groups.map(([title, fonts]) => `
+    <section><h2>${title}</h2><div class="grid">
+      ${fonts.map(([font, tag, w, stroke]) => `
+        <div class="font">
+          <div class="name">${font} ${tag ? `<small>(${tag})</small>` : ""}</div>
+          <div class="big">${set(font, w, stroke)}</div>
+          <div class="small">${set(font, w, stroke)}</div>
+        </div>`).join("")}
+    </div></section>`).join("");
+</script>
+</body>
+</html>

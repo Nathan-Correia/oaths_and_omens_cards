@@ -151,7 +151,7 @@
   .hex-icons .cost img { --s: 1; height: 4.9mm; max-width: none; }
   .cost .sym {
     font-family: "Augustus", serif;
-    font-weight: 600;   /* same bold as <b> in the rules text */
+    font-weight: 400;
     font-size: 4.6mm;
     line-height: 1;
     position: relative;
@@ -261,41 +261,47 @@
 </svg>
 
 <script>
-  // Cost lists resources in the order they should appear on the card.
-  // Set art to an image path to replace the placeholder emblem.
+  // Cost lists resources in the order they should appear on the card ([] = free).
+  // Set art to an image path; until then the emblem (if any) is shown as a placeholder.
   const cards = [
-    {
-      god: "Zeus",
-      name: "Smite",
-      emblem: "e-bolt",
-      art: null,
-      cost: ["N", "×", "any"],
-      rules: "Play during a battle you are in, Pay N resources (up to 3) to <b>kill N enemy units</b> in that battle."
-    },
-    {
-      god: "Apollo",
-      name: "Volley",
-      emblem: "e-sun",
-      art: null,
-      cost: ["wood", "wood", "ore"],
-      rules: "Play when a battle you are in begins, before the first round. <b>Roll 3 archer shots.</b>"
-    },
-    {
-      god: "Artemis",
-      name: "True Aim",
-      emblem: "e-moon",
-      art: null,
-      cost: ["wood", "fish"],
-      rules: "Play when a battle you are in begins, before archers roll. Your archers don't roll this battle. They instead <b>each score 1 kill</b> automatically."
-    },
-    {
-      god: "Nike",
-      name: "Victory",
-      emblem: "e-laurel",
-      art: null,
-      cost: ["clay", "ore", "any"],
-      rules: "Play at any time. <b>Gain 1 victory point.</b>"
-    }
+    { god: "Zeus", name: "Wrath", emblem: "e-bolt", cost: ["N", "×", "any"],
+      rules: "During a battle, at any time after the archer volley, pay N resources (up to 3) to kill N enemy units." },
+    { god: "Poseidon", name: "High Tide", cost: ["fish", "fish", "any"],
+      rules: "Before the movement phase, spawn 2 cavalry units on an empty tile next to any lake." },
+    { god: "Hades", name: "Relinquish", cost: ["N", "×", "any"],
+      rules: "After a battle, pay N resources (up to 3) to revive N lost units as hoplites at your capital." },
+    { god: "Hera", name: "Dowry", cost: [],
+      rules: "During the collection phase, choose a player. They give you 2 gold, and 1 resource of your choice." },
+    { god: "Apollo", name: "Volley", emblem: "e-sun", cost: ["wood", "ore"],
+      rules: "During the archer volley, roll 3 extra archer dice." },
+    { god: "Artemis", name: "True Aim", emblem: "e-moon", cost: ["wood", "ore"],
+      rules: "During the archer volley, instead of rolling, each of your archers kills an enemy unit." },
+    { god: "Demeter", name: "Harvest", cost: [],
+      rules: "At the start of the collection phase, select one resource type. All generation of that resource doubles this turn." },
+    { god: "Nike", name: "Victory", emblem: "e-laurel", cost: ["clay"],
+      rules: "Play at any time. Gain 1 victory point. This card cannot be traded." },
+    { god: "Athena", name: "Encircle", cost: ["fish"],
+      rules: "During a battle, after the archer volley, your blank rolls count as 1 kill, and you ignore the 1 unit kill cap." },
+    { god: "Hermes", name: "Fleet Footed", cost: ["fish"],
+      rules: "After the movement phase has ended, move one additional step." },
+    { god: "Hephaestus", name: "Forge", cost: ["ore"],
+      rules: "During the buy phase, roll 1 die. Upgrade units equal to the icons rolled +1." },
+    { god: "Ares", name: "Charge", cost: ["fish"],
+      rules: "During a battle, after the archer volley, your double rolls count as 3 kills, and you ignore the 1 unit kill cap." },
+    { god: "Aphrodite", name: "Allure", cost: ["clay", "clay"],
+      rules: "At the start of a battle, convert one enemy unit of your choice to your side." },
+    { god: "Dionysus", name: "Midas Touch", cost: ["clay", "any"],
+      rules: "At any time, receive 5 gold." },
+    { god: "Hestia", name: "Hearth", cost: ["wood"],
+      rules: "When building an outpost, play this card to ignore placement restrictions from other players’ outposts." },
+    { god: "The Fates", name: "Weave", cost: ["any"],
+      rules: "Choose one of your dice rolls. You may reroll it up to 3 times." },
+    { god: "Atlas", name: "Tremor", cost: ["ore", "any"],
+      rules: "At the start of the movement phase, choose a tile. Each army on it or an adjacent tile loses 1 unit (owner's choice)." },
+    { god: "Prometheus", name: "Foresight", cost: [],
+      rules: "Before one movement step, play this card. You take your step before anyone else does." },
+    { god: "Hypno", name: "Lull", cost: [],
+      rules: "Before a standard or cavalry movement step, select a player. That player cannot move during that step." }
   ];
 
   // Resource names become pictures; anything else (N, ×) is printed as text.
@@ -308,7 +314,10 @@
     ingame: { wood: "_ingame", clay: "_ingame", any: "_ingame" },
     filament: all("_filament"),
     hex: { ...all("_hex"), any: "_filament" },
-    hexicon: { ...all("_hexicon"), any: "_filament" }
+    hexicon: { ...all("_hexicon"), any: "_filament" },
+    // Lettered hexagons (W / I / C / F, "?" on any): black Capitalis letters stored as
+    // outlines and thickened like the god names; lighter iron grey.
+    hexletter_blacksm: all("_hexletter_blacksm")
   };
   const icon = (r, palette) => resources.includes(r)
     ? `<img src="images/resources/${r}${palettes[palette]?.[r] ?? ""}.svg" alt="${r}" title="${r}">`
@@ -318,7 +327,7 @@
     <div class="card">
       <div class="inner">
         <div class="art" ${c.art ? `style="background-image:url('${c.art}')"` : ""}>
-          ${c.art ? "" : `<svg class="emblem"><use href="#${c.emblem}"/></svg>`}
+          ${!c.art && c.emblem ? `<svg class="emblem"><use href="#${c.emblem}"/></svg>` : ""}
         </div>
         <div class="plate title-bar">
           <div class="god">${c.god}</div>
@@ -335,10 +344,7 @@
     </div>`;
 
   const rows = [
-    { label: "In-game colours", palette: "ingame" },
-    { label: "Filament colours", palette: "filament" },
-    { label: "Filament hexagons", palette: "hex" },
-    { label: "Filament hexagons with icons", palette: "hexicon" }
+    { label: "Letters", palette: "hexletter_blacksm" }
   ];
 
   document.getElementById("sheet").innerHTML = rows.map(r => `

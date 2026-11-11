@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Capitalis Kerning Comparison</title>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  @font-face { font-family: "Capitalis"; src: url("fonts/minicaps.ttf"); }
+  @font-face { font-family: "Capitalis Kerned"; src: url("fonts/minicaps_kerned.ttf"); }
+
+  :root { --bg: #e6e2da; --ink: #1f1a14; --soft: #5e5140; --plate: #ece1c8; --edge: #b8955a; --hit: #b5583a; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: "EB Garamond", Georgia, serif; padding: 16px; }
+  h1 { font-size: 22px; font-weight: 600; }
+  p.note { color: var(--soft); margin: 4px 0 14px; max-width: 70ch; }
+  .controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-bottom: 14px; font-size: 15px; }
+  .controls label { display: flex; gap: 6px; align-items: center; cursor: pointer; }
+
+  h2 { font-size: 14px; font-weight: 600; color: var(--soft); text-transform: uppercase; letter-spacing: .06em; margin: 18px 0 6px; }
+  .head { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px; color: var(--soft); font-weight: 600; padding: 0 10px; }
+  .list { display: grid; gap: 6px; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pair > div {
+    background: var(--plate); border: 1px solid var(--edge); border-radius: 4px;
+    padding: 6px 10px; display: flex; align-items: center; min-width: 0; overflow: hidden;
+  }
+  /* Card styling: same size ratio, letter spacing and stroke as the god names. */
+  .name { line-height: 1.15; letter-spacing: 0.02em; white-space: nowrap;
+          -webkit-text-stroke: calc(var(--size) * 0.0214) currentColor; font-size: var(--size); }
+  .god  { --size: 44px; }
+  .card { --size: 33px; -webkit-text-stroke: 0; letter-spacing: 0.04em; }
+  .orig { font-family: "Capitalis", serif; }
+  .kern { font-family: "Capitalis Kerned", serif; }
+  .print .god  { --size: 5.6mm; }
+  .print .card { --size: 4.2mm; }
+  .print .pair > div { padding: 3px 8px; }
+
+  .changed .pair > div::after { content: ""; }
+  .tag { margin-left: auto; padding-left: 8px; font-size: 12px; color: var(--hit); font-family: "EB Garamond", serif; white-space: nowrap; }
+  body.only-changed .pair:not(.hit) { display: none; }
+
+  @media (max-width: 520px) { .god { --size: 30px; } .card { --size: 23px; } }
+</style>
+</head>
+<body>
+<h1>Capitalis: original vs. patched kerning</h1>
+<p class="note">Left is the font as it is now, right is <code>fonts/minicaps_kerned.ttf</code>. The patch only changes the space after
+  <b>r</b> / <b>R</b> when the next letter starts with a stem or foot (e, a, i, h, l, m, n…): the feet are brought to a fixed small gap instead of the wide one the font used.
+  Names with a changed pair are tagged.</p>
+
+<div class="controls">
+  <label><input type="checkbox" id="print"> Actual card size</label>
+  <label><input type="checkbox" id="only"> Only names that change</label>
+</div>
+
+<div id="out"></div>
+
+<script>
+  const gods = ["Zeus","Poseidon","Hades","Hera","Apollo","Artemis","Demeter","Nike","Athena","Hermes",
+                "Hephaestus","Ares","Aphrodite","Dionysus","Hestia","The Fates","Atlas","Prometheus","Hypno"];
+  const names = ["Wrath","High Tide","Relinquish","Dowry","Volley","True Aim","Harvest","Victory","Encircle",
+                 "Fleet Footed","Forge","Charge","Allure","Midas Touch","Hearth","Weave","Tremor","Foresight","Lull"];
+  // Pairs changed by fonts/patch_capitalis.py (r or R followed by one of these).
+  const after = "abdefhiklmnprxz";
+  const hits = s => [...s.matchAll(/(?=([rR])(.))/g)].map(m => m[1] + m[2]).filter(p => after.includes(p[1]));
+
+  const section = (title, list, cls) => `
+    <h2>${title}</h2>
+    <div class="head"><span>Original</span><span>Patched</span></div>
+    <div class="list">
+      ${list.map(n => {
+        const h = hits(n);
+        const tag = h.length ? `<span class="tag">${h.join(", ")}</span>` : "";
+        return `<div class="pair ${h.length ? "hit" : ""}">
+          <div><span class="name ${cls} orig">${n}</span></div>
+          <div><span class="name ${cls} kern">${n}</span>${tag}</div>
+        </div>`;
+      }).join("")}
+    </div>`;
+
+  document.getElementById("out").innerHTML =
+    section("God names", gods, "god") + section("Card names", names, "card");
+
+  const sync = () => {
+    document.body.classList.toggle("print", document.getElementById("print").checked);
+    document.body.classList.toggle("only-changed", document.getElementById("only").checked);
+  };
+  document.querySelectorAll(".controls input").forEach(i => i.addEventListener("change", sync));
+</script>
+</body>
+</html>
