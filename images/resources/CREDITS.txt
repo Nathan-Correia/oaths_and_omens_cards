@@ -5,3 +5,7 @@ clay.svg  <- jug_outline.svg
 ore.svg   <- iron_ingot.svg
 any.svg   - hexagon, original to this project.
 Check each SVG Repo icon's licence page before publishing.
+
+Card emblems (cards.html) are original placeholders, except:
+Ares helmet - "Spartan helmet" by Delapouite, https://game-icons.net, CC BY 3.0
+              (https://creativecommons.org/licenses/by/3.0/) - credit required if published.

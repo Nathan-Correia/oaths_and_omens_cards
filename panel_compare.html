@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Text Panel Heights</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  /* Local fonts from dafont.com (see fonts/ for each font's readme) */
+  @font-face { font-family: "Capitalis"; src: url("fonts/minicaps_kerned.ttf"); }  /* patched kerning: fonts/patch_capitalis.py */
+  @font-face { font-family: "Augustus"; src: url("fonts/AUGUSTUS.TTF"); }
+  :root {
+    --ink: #1f1a14;
+    --ink-soft: #5e5140;
+    --frame: #1c1915;
+    --gold: #b8955a;
+    --gold-dark: #7d6234;
+    --parchment: #ece1c8;
+    --parchment-edge: #d6c6a2;
+    --chamfer: 1.6mm;
+
+    --fish: #3d7fae;
+    --clay: #b5583a;
+    --wood: #8a5a2e;
+    --ore:  #6b7280;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #e6e2da;
+    font-family: "EB Garamond", Georgia, serif;
+    color: var(--ink);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Fonts. Capitalis has no bold, so the god name is thickened with an
+     outline in the text colour; the card name stays plain. */
+  :root {
+    --f-god: "Capitalis", serif;   --w-god: 400; --s-god: 5.6mm;
+    --f-name: "Capitalis", serif;  --w-name: 400; --s-name: 4.2mm;
+    --f-rules: "Augustus", serif;  --s-rules: 3mm;
+    --stroke: 0.12mm;
+  }
+  .god { -webkit-text-stroke: var(--stroke) currentColor; }
+
+  .sheet {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6mm;
+    padding: 12mm 10mm;
+  }
+  .row { display: flex; flex-direction: column; gap: 1.5mm; }
+  .row-label {
+    font: 600 3.2mm/1 "EB Garamond", serif;
+    color: var(--ink-soft);
+  }
+  .row-cards { display: flex; flex-wrap: wrap; gap: 2mm; }
+
+  /* ---------- Card ---------- */
+  .card {
+    position: relative;
+    width: 63mm;
+    height: 88mm;
+    background: var(--frame);
+    border-radius: 3mm;
+    padding: 2.2mm;
+  }
+
+  .inner {
+    position: relative;
+    height: 100%;
+    border: 0.4mm solid var(--gold);
+    border-radius: 1.2mm;
+    overflow: hidden;
+  }
+
+  /* Art fills the whole inner frame; panels sit on top of it */
+  .art {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 50% 40%, #56606e 0%, #2e3540 55%, #1c2027 100%);
+    background-size: cover;
+    background-position: center;
+    display: grid;
+    place-items: center;
+  }
+  .art svg.emblem {
+    width: 18mm;
+    height: 18mm;
+    margin-bottom: calc(var(--panel-h, 27mm) / 2 - 1.5mm);   /* keep emblem centred in the art */
+    fill: #fff;
+    opacity: 0.12;
+  }
+
+  /* Gold-edged parchment plates with chamfered corners.
+     Outer element is the gold edge, ::before is the parchment fill. */
+  .plate {
+    position: absolute;
+    left: 0.9mm;
+    right: 0.9mm;
+    background: var(--gold);
+  }
+  .plate::before {
+    content: "";
+    position: absolute;
+    inset: 0.35mm;
+    clip-path: inherit;
+    background:
+      radial-gradient(ellipse at center, var(--parchment) 55%, var(--parchment-edge) 100%);
+  }
+  .plate > * { position: relative; }
+
+
+  .title-bar {
+    top: 0.9mm;
+    height: 8.6mm;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2.2mm 0 2.4mm;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--chamfer)), calc(100% - var(--chamfer)) 100%, var(--chamfer) 100%, 0 calc(100% - var(--chamfer)));
+  }
+  .god {
+    font-family: var(--f-god);
+    font-weight: var(--w-god);
+    font-size: var(--s-god);
+    line-height: 1;
+    letter-spacing: 0.02em;
+    padding-top: 0.4mm;
+  }
+
+  .cost { display: flex; gap: 0.3mm; align-items: center; }
+  .cost { gap: 0.5mm; }
+  .cost img {
+    --s: 1;
+    height: calc(4.6mm * var(--s));
+    width: auto;
+    max-width: calc(6.4mm * var(--s));
+    object-fit: contain;
+  }
+  .cost img[alt="wood"] { --s: 0.9; }
+  .cost img[alt="ore"],
+  .cost img[alt="fish"] { --s: 0.95; }
+  .cost img[alt="any"] { height: 4.9mm; }
+  .hex-icons .cost img { --s: 1; height: 4.9mm; max-width: none; }
+  .cost .sym {
+    font-family: "Augustus", serif;
+    font-weight: 400;
+    font-size: 4.6mm;
+    line-height: 1;
+    position: relative;
+    top: -0.2mm;
+  }
+  .cost .sym.times {
+    font-family: "EB Garamond", serif;
+    font-weight: 600;
+    font-size: 4.2mm;
+    margin: 0 -0.35mm;   /* tuck N × icon closer together */
+  }
+
+  .text-panel {
+    bottom: 0.9mm;
+    height: var(--panel-h, 27mm);
+    padding: 2.4mm 2.6mm 2mm;
+    display: flex;
+    flex-direction: column;
+    clip-path: polygon(var(--chamfer) 0, calc(100% - var(--chamfer)) 0, 100% var(--chamfer), 100% 100%, 0 100%, 0 var(--chamfer));
+  }
+  .card-name {
+    display: flex;
+    align-items: center;
+    gap: 2mm;
+    font-family: var(--f-name);
+    font-weight: var(--w-name);
+    font-size: var(--s-name);
+    line-height: 1;
+    letter-spacing: 0.04em;
+  }
+  .card-name::before,
+  .card-name::after {
+    content: "";
+    flex: 1;
+    height: 0.2mm;
+    background: var(--gold-dark);
+  }
+
+  .text {
+    flex: 1;
+    min-height: 0;
+    margin-top: 1.6mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    overflow: hidden;
+  }
+  .rules {
+    font-family: var(--f-rules);
+    font-size: var(--s-rules);
+    line-height: 1.22;
+  }
+  .rules b { font-weight: 600; }
+  .flavor {
+    margin-top: 1mm;
+    font-style: italic;
+    font-size: 2.6mm;
+    line-height: 1.2;
+    color: var(--ink-soft);
+  }
+
+  @page { size: letter; margin: 0; }
+  @media print {
+    body { background: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="sheet" id="sheet"></div>
+
+<!-- Emblem placeholders (resource pictures live in images/resources) -->
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="e-bolt" viewBox="0 0 100 100">
+    <path d="M60 3 28 54h19L36 97 74 40H55L70 3z"/>
+  </symbol>
+  <symbol id="e-sun" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="19"/>
+    <path id="ray" d="M50 2l6 20H44z"/>
+    <use href="#ray" transform="rotate(45 50 50)"/>
+    <use href="#ray" transform="rotate(90 50 50)"/>
+    <use href="#ray" transform="rotate(135 50 50)"/>
+    <use href="#ray" transform="rotate(180 50 50)"/>
+    <use href="#ray" transform="rotate(225 50 50)"/>
+    <use href="#ray" transform="rotate(270 50 50)"/>
+    <use href="#ray" transform="rotate(315 50 50)"/>
+  </symbol>
+  <symbol id="e-moon" viewBox="0 0 100 100">
+    <path d="M58 6a44 44 0 1 0 36 66A36 36 0 1 1 58 6z"/>
+  </symbol>
+  <symbol id="e-laurel" viewBox="0 0 100 100">
+    <g id="branch">
+      <path d="M50 94C30 84 18 64 22 22" fill="none" stroke="#fff" stroke-width="2.5"/>
+      <ellipse cx="40" cy="86" rx="4" ry="9" transform="rotate(-60 40 86)"/>
+      <ellipse cx="30" cy="76" rx="4" ry="9" transform="rotate(-40 30 76)"/>
+      <ellipse cx="23" cy="63" rx="4" ry="9" transform="rotate(-22 23 63)"/>
+      <ellipse cx="20" cy="49" rx="4" ry="9" transform="rotate(-8 20 49)"/>
+      <ellipse cx="20" cy="35" rx="4" ry="9" transform="rotate(6 20 35)"/>
+      <ellipse cx="23" cy="21" rx="4" ry="9" transform="rotate(18 23 21)"/>
+      <ellipse cx="31" cy="70" rx="3.5" ry="8" transform="rotate(40 31 70)"/>
+      <ellipse cx="27" cy="54" rx="3.5" ry="8" transform="rotate(40 27 54)"/>
+      <ellipse cx="26" cy="39" rx="3.5" ry="8" transform="rotate(45 26 39)"/>
+    </g>
+    <use href="#branch" transform="translate(100 0) scale(-1 1)"/>
+  </symbol>
+  <symbol id="e-trident" viewBox="0 0 100 100">
+    <rect x="47" y="30" width="6" height="66"/>
+    <rect x="43" y="56" width="14" height="5" rx="2"/>
+    <path d="M28 20v12q0 10 22 10t22-10V20" fill="none" stroke="#fff" stroke-width="6"/>
+    <rect x="47" y="14" width="6" height="30"/>
+    <path d="M50 2l8 16H42zM28 6l7 16H21zM72 6l7 16H65z"/>
+  </symbol>
+  <symbol id="e-bident" viewBox="0 0 100 100">
+    <rect x="47" y="38" width="6" height="58"/>
+    <rect x="43" y="62" width="14" height="5" rx="2"/>
+    <path d="M36 18v14q0 10 14 10t14-10V18" fill="none" stroke="#fff" stroke-width="6"/>
+    <path d="M36 2l8 18H28zM64 2l8 18H56z"/>
+  </symbol>
+  <symbol id="e-crown" viewBox="0 0 100 100">
+    <path fill-rule="evenodd" d="M14 72L18 34L34 52L50 20L66 52L82 34L86 72zM50 44l7 10-7 10-7-10z"/>
+    <path fill-rule="evenodd" d="M14 76H86V88H14zM28 79h6v6h-6zM47 79h6v6h-6zM66 79h6v6h-6z"/>
+    <circle cx="18" cy="29" r="5"/><circle cx="50" cy="15" r="6"/><circle cx="82" cy="29" r="5"/>
+  </symbol>
+  <symbol id="e-wheat" viewBox="0 0 100 100">
+    <g id="e-wheat-stalk">
+      <path d="M50 96V22" fill="none" stroke="#fff" stroke-width="3"/>
+      <ellipse cx="50" cy="16" rx="4" ry="8"/>
+      <ellipse cx="44" cy="30" rx="4" ry="8" transform="rotate(-30 44 30)"/>
+      <ellipse cx="56" cy="30" rx="4" ry="8" transform="rotate(30 56 30)"/>
+      <ellipse cx="44" cy="44" rx="4" ry="8" transform="rotate(-30 44 44)"/>
+      <ellipse cx="56" cy="44" rx="4" ry="8" transform="rotate(30 56 44)"/>
+      <ellipse cx="44" cy="58" rx="4" ry="8" transform="rotate(-30 44 58)"/>
+      <ellipse cx="56" cy="58" rx="4" ry="8" transform="rotate(30 56 58)"/>
+    </g>
+    <use href="#e-wheat-stalk" transform="rotate(-24 50 96)"/>
+    <use href="#e-wheat-stalk" transform="rotate(24 50 96)"/>
+  </symbol>
+  <symbol id="e-owl" viewBox="0 0 100 100">
+    <path d="M12 93H88" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+    <path fill-rule="evenodd" d="M50 20C57 20 64 19 70 15L77 6C79 16 80 25 78 33C84 45 84 62 79 74C73 87 62 92 50 92C38 92 27 87 21 74C16 62 16 45 22 33C20 25 21 16 23 6L30 15C36 19 43 20 50 20z
+      M26 41a12 12 0 1 0 24 0a12 12 0 1 0-24 0zM50 41a12 12 0 1 0 24 0a12 12 0 1 0-24 0z
+      M27 52C29 67 35 79 45 87C36 82 30 70 30 52zM73 52C71 67 65 79 55 87C64 82 70 70 70 52z
+      M42 64L50 68L58 64V67L50 71L42 67zM44 74L50 77L56 74V77L50 80L44 77z"/>
+    <circle cx="38" cy="41" r="5.5"/><circle cx="62" cy="41" r="5.5"/>
+    <path d="M45 50H55L50 59z"/>
+  </symbol>
+  <symbol id="e-caduceus" viewBox="0 0 100 100">
+    <path d="M50 16V96" fill="none" stroke="#fff" stroke-width="5"/>
+    <circle cx="50" cy="10" r="6"/>
+    <path d="M47 22C36 12 20 10 6 14C16 18 22 22 26 26C18 26 12 28 8 33C22 36 36 34 47 30z"/>
+    <path d="M53 22C64 12 80 10 94 14C84 18 78 22 74 26C82 26 88 28 92 33C78 36 64 34 53 30z"/>
+    <path d="M50 90C30 82 30 72 50 64C70 56 70 46 50 40" fill="none" stroke="#fff" stroke-width="4"/>
+    <path d="M50 90C70 82 70 72 50 64C30 56 30 46 50 40" fill="none" stroke="#fff" stroke-width="4"/>
+    <circle cx="44" cy="39" r="4"/><circle cx="56" cy="39" r="4"/>
+  </symbol>
+  <symbol id="e-forge" viewBox="0 0 100 100">
+    <path d="M10 56H70L92 56C86 64 78 66 70 66H64V74L74 86H26L36 74V66H22C16 64 10 60 10 56z"/>
+    <g transform="rotate(-35 50 30)">
+      <rect x="47" y="18" width="6" height="34" rx="2"/>
+      <rect x="34" y="8" width="32" height="13" rx="2"/>
+    </g>
+  </symbol>
+  <symbol id="e-helmet" viewBox="0 0 512 512">
+    <!-- "Spartan helmet" by Delapouite, game-icons.net, CC BY 3.0 -->
+    <path d="M253.714 20.358c-8.79.075-17.448.82-25.89 2.308-46.55 8.208-89.423 26.157-121.225 52.065-31.803 25.908-52.572 59.39-56.316 100.053l-.004.04-.004.04c-8.45 83.885 39.397 152.37 65.604 181.553 5.21 5.804 7.064 13.574 6.533 20.862-.53 7.288-3.04 14.494-6.598 21.838-7.114 14.688-18.703 30.06-31.03 44.457-13.957 16.303-27.375 29.703-37.75 39.627 7.203-1.214 14.764-4.37 22.67-9.368 14.66-9.265 29.554-24.475 42.097-41.298 12.543-16.824 22.807-35.28 28.802-50.586 2.998-7.654 4.912-14.54 5.614-19.72.7-5.178-.177-8.39-.354-8.687-15.34-25.73-31.257-52.027-40.687-79.112-9.43-27.085-12.2-55.565-.073-83.35 25.223-57.79 78.02-85.085 130.772-89.605 52.61-4.508 105.963 12.396 136.545 44.71l23.292 22.474 69.254-41.47c-20.34-26.314-55.49-55.33-96.24-76.257-33.546-17.226-70.702-28.978-106.18-30.428-2.957-.12-5.902-.17-8.832-.144zM372.42 146.184l-.058-.057.31.313c-.083-.087-.17-.17-.25-.256zM244.814 118.95c-2.468.102-4.935.245-7.4.457-3.562.305-7.11.73-10.64 1.255l9.628 45.077c5.76-1.637 11.657-2.823 17.646-3.564l-9.233-43.226zm43.85 3.658c-4.866 12.845-7.33 25.916-6.978 39.04 6.034.48 12.086 1.335 18.12 2.557-.868-12.19 1.306-24.43 6.362-36.98-5.66-1.82-11.515-3.363-17.504-4.617zm-106.672 11.79c-6.112 3.028-12 6.54-17.612 10.532 17.55 8.862 29.7 22.763 34.715 39.594 4.936-3.84 10.145-7.183 15.564-10.063-6.122-16.257-17.577-30.086-32.666-40.063zm88.136 44.796c-1.156-.002-2.308.014-3.457.047-2.675.076-5.328.242-7.952.502-41.993 4.176-77.31 30.258-87.475 90.07-2.198 12.94 4.293 42.822 12.246 67.66 7.952 24.836 16.634 45.517 16.634 45.517l.504 1.198.143 1.295c1.96 17.7-9.11 34.967-21.212 52.26-8.036 11.486-16.43 22.104-23.97 31.72 24-1.35 45.963-11.985 67.177-30.947-.124-.5-.17-.71-.313-1.297-.866-3.594-1.955-8.697-1.687-14.68.446-9.983 5.674-21.958 18.818-31.868-24.577-35.02-28.898-78.757-24.06-115.027l.886-6.65 6.626-1.05c58.715-9.29 97.246-28.81 139.34-54.593-27.566-21.88-61.198-34.115-92.25-34.158zm120.197 37.84c-48.424 30.517-91.56 55.67-157.556 67.35-3.253 33.408 2.427 71.84 25.226 100.798 12.607.61 23.264 6.977 29.904 16.184 6.747 9.353 9.946 21.162 10.83 33.628 23.288 21.426 62.97 39.024 97.764 56.655-3.17-39.444-.296-76.34-14.538-114.11l-62.842-25.3-.062-.027c-14.313-6.018-23.332-13.792-26.512-24.03-3.18-10.236-.874-19.966 1.188-31.064l2.2-11.852 10.74 5.476c23.407 11.94 51.394 20.52 77.548 20.065l6.582-.116 2.103 6.238c10.593 31.436 12.912 56.612 15.752 82.203l7.787 3.113c4.126-29.38 1.912-68.686-3.862-104.425-5.463-33.817-14.72-65.03-22.252-80.788zM223.397 441.148c-.01.444.094.455.01.04-.002-.008-.01-.033-.01-.04z"/>
+  </symbol>
+  <symbol id="e-shell" viewBox="0 0 100 100">
+    <path transform="translate(50 82) scale(0.74) translate(-50 -84)" fill-rule="evenodd" d="M50.0 84.0 L-7.1 65.5 Q-11.6 50.8 3.1 46.6 Q3.9 31.3 19.2 32.5 Q25.4 18.5 39.3 25.0 Q50.0 14.0 60.7 25.0 Q74.6 18.5 80.8 32.5 Q96.1 31.3 96.9 46.6 Q111.6 50.8 107.1 65.5z M37.3 74.3 L5.3 50.3 L7.2 47.9 L37.7 73.7z M41.5 70.5 L19.9 36.7 L22.6 35.1 L42.1 70.1z M46.8 68.3 L38.5 29.2 L41.5 28.6 L47.5 68.2z M52.5 68.2 L58.5 28.6 L61.5 29.2 L53.2 68.3z M57.9 70.1 L77.4 35.1 L80.1 36.7 L58.5 70.5z M62.3 73.7 L92.8 47.9 L94.7 50.3 L62.7 74.3z"/>
+    <path d="M36 80H64L60 92H40z"/>
+  </symbol>
+  <symbol id="e-grapes" viewBox="0 0 100 100">
+    <path d="M50 30L54 10" fill="none" stroke="#fff" stroke-width="3.5"/>
+    <path d="M54 14C64 4 82 6 90 14C80 22 64 24 54 14z"/>
+    <circle cx="26" cy="36" r="7.6"/><circle cx="42" cy="36" r="7.6"/><circle cx="58" cy="36" r="7.6"/><circle cx="74" cy="36" r="7.6"/>
+    <circle cx="34" cy="50" r="7.6"/><circle cx="50" cy="50" r="7.6"/><circle cx="66" cy="50" r="7.6"/>
+    <circle cx="42" cy="64" r="7.6"/><circle cx="58" cy="64" r="7.6"/>
+    <circle cx="50" cy="78" r="7.6"/>
+  </symbol>
+  <symbol id="e-hearth" viewBox="0 0 100 100">
+    <path d="M50 8C57 22 70 30 70 46C70 58 62 64 50 64C38 64 30 58 30 46C30 36 36 30 39 22C41 32 45 34 48 36C46 26 46 16 50 8z"/>
+    <path d="M14 62H86C84 76 70 84 50 84C30 84 16 76 14 62z"/>
+    <path d="M30 80L24 96M70 80L76 96M50 84V96" fill="none" stroke="#fff" stroke-width="5"/>
+  </symbol>
+  <symbol id="e-shears" viewBox="0 0 100 100">
+    <path d="M45 56L84 10L89 14L56 60z"/>
+    <path d="M55 56L16 10L11 14L44 60z"/>
+    <path d="M46 58L36 70M54 58L64 70" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="32" cy="79" r="10" fill="none" stroke="#fff" stroke-width="5"/>
+    <circle cx="68" cy="79" r="10" fill="none" stroke="#fff" stroke-width="5"/>
+    <circle cx="50" cy="56" r="4"/>
+    <path d="M4 40C16 32 30 38 45 33M55 31C70 26 84 32 96 22" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="e-globe" viewBox="0 0 100 100">
+    <circle cx="50" cy="42" r="32" fill="none" stroke="#fff" stroke-width="5"/>
+    <ellipse cx="50" cy="42" rx="13" ry="32" fill="none" stroke="#fff" stroke-width="3"/>
+    <path d="M18 42H82M24 24H76M24 60H76" fill="none" stroke="#fff" stroke-width="3"/>
+    <path d="M22 58L78 26" fill="none" stroke="#fff" stroke-width="6"/>
+    <path d="M44 74H56V82H44zM30 82H70L74 94H26z"/>
+  </symbol>
+  <symbol id="e-torch" viewBox="0 0 100 100">
+    <path d="M50 4C56 16 66 22 66 34C66 42 60 46 50 46C40 46 34 42 34 34C34 26 40 22 42 14C44 22 46 24 48 26C47 18 47 10 50 4z"/>
+    <path d="M36 48H64L59 58H41z"/>
+    <path d="M44 60H56L53 96H47z"/>
+  </symbol>
+  <symbol id="e-sleep" viewBox="0 0 100 100">
+    <path d="M14 46Q50 78 86 46 M27.0 55.4l-5.9 10.4 M38.5 60.4l-3.3 11.5 M50.0 62.0l-0.0 12.0 M61.5 60.4l3.3 11.5 M73.0 55.4l5.9 10.4" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+    <path d="M56 10H70L56 24H70M74 22H84L74 32H84" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+</svg>
+
+<script>
+  // Cost lists resources in the order they should appear on the card ([] = free).
+  // Set art to an image path; until then the emblem (if any) is shown as a placeholder.
+  const cards = [
+    { god: "Zeus", name: "Smite", emblem: "e-bolt", cost: ["N", "×", "any"],
+      rules: "During a battle, at any time after the archer volley, pay N resources (up to 3) to kill N enemy units." },
+    { god: "Poseidon", name: "High Tide", emblem: "e-trident", cost: ["fish", "fish", "any"],
+      rules: "Before the movement phase, spawn 2 cavalry units on an empty tile next to any lake." },
+    { god: "Hades", name: "Relinquish", emblem: "e-bident", cost: ["N", "×", "any"],
+      rules: "After a battle, pay N resources (up to 3) to revive N lost units as hoplites at your capital." },
+    { god: "Hera", name: "Dowry", emblem: "e-crown", cost: [],
+      rules: "During the collection phase, choose a player. They give you 2 gold, and 1 resource of your choice." },
+    { god: "Apollo", name: "Volley", emblem: "e-sun", cost: ["wood", "ore"],
+      rules: "During the archer volley, roll 3 extra archer dice." },
+    { god: "Artemis", name: "True Aim", emblem: "e-moon", cost: ["wood", "ore"],
+      rules: "During the archer volley, instead of rolling, each of your archers kills an enemy unit." },
+    { god: "Demeter", name: "Harvest", emblem: "e-wheat", cost: [],
+      rules: "At the start of the collection phase, select one resource type. All generation of that resource doubles this turn." },
+    { god: "Nike", name: "Victory", emblem: "e-laurel", cost: ["clay"],
+      rules: "Play at any time. Gain 1 victory point. This card cannot be traded." },
+    { god: "Athena", name: "Encircle", emblem: "e-owl", cost: ["fish"],
+      rules: "During a battle, after the archer volley, your blank rolls count as 1 kill, and you ignore the 1 unit kill cap." },
+    { god: "Hermes", name: "Fleet Footed", emblem: "e-caduceus", cost: ["fish"],
+      rules: "After the movement phase has ended, move one additional step." },
+    { god: "Hephaestus", name: "Forge", emblem: "e-forge", cost: ["ore"],
+      rules: "During the buy phase, roll 1 die. Upgrade units equal to the icons rolled +1." },
+    { god: "Ares", name: "Charge", emblem: "e-helmet", cost: ["fish"],
+      rules: "During a battle, after the archer volley, your double rolls count as 3 kills, and you ignore the 1 unit kill cap." },
+    { god: "Aphrodite", name: "Allure", emblem: "e-shell", cost: ["clay", "clay"],
+      rules: "At the start of a battle, convert one enemy unit of your choice to your side." },
+    { god: "Dionysus", name: "Midas Touch", emblem: "e-grapes", cost: ["clay", "any"],
+      rules: "At any time, receive 5 gold." },
+    { god: "Hestia", name: "Hearth", emblem: "e-hearth", cost: ["wood"],
+      rules: "When building an outpost, play this card to ignore placement restrictions from other players’ outposts." },
+    { god: "The Fates", name: "Weave", emblem: "e-shears", cost: ["any"],
+      rules: "Choose one of your dice rolls. You may reroll it up to 3 times." },
+    { god: "Atlas", name: "Tremor", emblem: "e-globe", cost: ["ore", "any"],
+      rules: "At the start of the movement phase, choose a tile. Each army on it or an adjacent tile loses 1 unit (owner's choice)." },
+    { god: "Prometheus", name: "Foresight", emblem: "e-torch", cost: [],
+      rules: "Before one movement step, play this card. You take your step before anyone else does." },
+    { god: "Hypno", name: "Lull", emblem: "e-sleep", cost: [],
+      rules: "Before a standard or cavalry movement step, select a player. That player cannot move during that step." }
+  ];
+
+  // Resource names become pictures; anything else (N, ×) is printed as text.
+  const resources = ["fish", "clay", "wood", "ore", "any"];
+  // Palettes swap in alternate icon files: resource -> file suffix (wood -> wood_ingame.svg).
+  // ingame: green wood, brown clay. filament: the 3D-printed token colours.
+  // hex / hexicon: filament-coloured hexagons, plain or with the resource drawn inside.
+  const all = suffix => Object.fromEntries(resources.map(r => [r, suffix]));
+  const palettes = {
+    ingame: { wood: "_ingame", clay: "_ingame", any: "_ingame" },
+    filament: all("_filament"),
+    hex: { ...all("_hex"), any: "_filament" },
+    hexicon: { ...all("_hexicon"), any: "_filament" },
+    // Lettered hexagons (W / I / C / F, "?" on any): black Capitalis letters stored as
+    // outlines and thickened like the god names; lighter iron grey.
+    hexletter_blacksm: all("_hexletter_blacksm")
+  };
+  const icon = (r, palette) => resources.includes(r)
+    ? `<img src="images/resources/${r}${palettes[palette]?.[r] ?? ""}.svg" alt="${r}" title="${r}">`
+    : `<span class="sym${r === "×" ? " times" : ""}">${r}</span>`;
+
+  const render = (c, palette) => `
+    <div class="card">
+      <div class="inner">
+        <div class="art" ${c.art ? `style="background-image:url('${c.art}')"` : ""}>
+          ${!c.art && c.emblem ? `<svg class="emblem"><use href="#${c.emblem}"/></svg>` : ""}
+        </div>
+        <div class="plate title-bar">
+          <div class="god">${c.god}</div>
+          <div class="cost">${c.cost.map(r => icon(r, palette)).join("")}</div>
+        </div>
+        <div class="plate text-panel">
+          <div class="card-name">${c.name}</div>
+          <div class="text">
+            <p class="rules">${c.rules}</p>
+            ${c.flavor ? `<p class="flavor">${c.flavor}</p>` : ""}
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  // Comparison: the same three cards (1, 2 and 3 lines of rules text) at several panel heights.
+  const sample = ["Dionysus", "Apollo", "Athena"].map(g => cards.find(c => c.god === g));
+  const heights = [
+    { h: 27, label: "27mm (current)" },
+    { h: 25, label: "25mm (−2mm)" },
+    { h: 23, label: "23mm (−4mm)" },
+    { h: 21.5, label: "21.5mm (−5.5mm)" },
+    { h: 20, label: "20mm (−7mm)" }
+  ];
+
+  document.getElementById("sheet").innerHTML = heights.map(r => `
+    <div class="row" style="--panel-h:${r.h}mm">
+      <div class="row-label">Text panel ${r.label}</div>
+      <div class="row-cards hex-icons">
+        ${sample.map(c => render(c, "hexletter_blacksm")).join("")}
+      </div>
+    </div>`).join("");
+
+  // Shrink rules text until it fits the panel (long cards like Aphrodite).
+  document.fonts.ready.then(() => {
+    document.querySelectorAll(".text").forEach(box => {
+      const rules = box.querySelector(".rules");
+      let size = parseFloat(getComputedStyle(rules).fontSize);
+      while (box.scrollHeight > box.clientHeight && size > 8) {
+        rules.style.fontSize = (size -= 0.25) + "px";
+      }
+    });
+  });
+</script>
+</body>
+</html>

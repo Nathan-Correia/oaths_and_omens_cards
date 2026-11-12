@@ -14,7 +14,7 @@ from fontTools.ttLib.tables import otTables
 from fontTools.pens.basePen import BasePen
 
 SRC, DST = "fonts/minicaps.ttf", "fonts/minicaps_kerned.ttf"
-FOOT_GAP = int(sys.argv[1]) if len(sys.argv) > 1 else 50   # font units (1000 per em)
+FOOT_GAP = int(sys.argv[1]) if len(sys.argv) > 1 else 25   # font units (1000 per em)
 FOOT_ZONE = 120          # "closest point is at the foot" = below this height
 LEFT = ["r", "R"]
 # Letters that start with a stem or a foot (round letters and j are left to the designer).
