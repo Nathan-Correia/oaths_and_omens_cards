@@ -214,15 +214,34 @@
     color: var(--ink-soft);
   }
 
+  /* ---------- Print: 3 x 3 cards per US letter page, with crop marks ---------- */
   @page { size: letter; margin: 0; }
+  :root {
+    --page-w: 215.9mm; --page-h: 279.4mm;
+    --grid-x: calc((var(--page-w) - 3 * 63mm) / 2);   /* 13.45mm side margins */
+    --grid-y: calc((var(--page-h) - 3 * 88mm) / 2);   /* 7.7mm top/bottom margins */
+  }
+  #print { display: none; }
+  .page { position: relative; width: var(--page-w); height: var(--page-h); overflow: hidden; break-after: page; }
+  .page:last-child { break-after: auto; }
+  .page-grid {
+    position: absolute; left: var(--grid-x); top: var(--grid-y);
+    display: grid; grid-template-columns: repeat(3, 63mm); grid-auto-rows: 88mm;
+  }
+  .crop { position: absolute; background: #777; }
+  .crop.v { width: 0.15mm; height: calc(var(--grid-y) - 1.5mm); margin-left: -0.075mm; }
+  .crop.h { height: 0.15mm; width: calc(var(--grid-x) - 1.5mm); margin-top: -0.075mm; }
   @media print {
     body { background: none; }
+    #sheet { display: none; }
+    #print { display: block; }
   }
 </style>
 </head>
 <body>
 
 <div class="sheet" id="sheet"></div>
+<div id="print"></div>
 
 <!-- Emblem placeholders (resource pictures live in images/resources) -->
 <svg width="0" height="0" style="position:absolute">
@@ -458,14 +477,41 @@
       </div>
     </div>`).join("");
 
+  // Print layout: pages of 9 cards (first row's palette), crop marks at every cut line.
+  const PER_PAGE = 9;
+  const cropMarks = () => {
+    const at = (v, n, size) => `calc(var(${v}) + ${n} * ${size})`;
+    let m = "";
+    for (let i = 0; i <= 3; i++) {
+      const x = at("--grid-x", i, "63mm"), y = at("--grid-y", i, "88mm");
+      m += `<i class="crop v" style="left:${x};top:0.5mm"></i>`;
+      m += `<i class="crop v" style="left:${x};bottom:0.5mm"></i>`;
+      m += `<i class="crop h" style="top:${y};left:0.5mm"></i>`;
+      m += `<i class="crop h" style="top:${y};right:0.5mm"></i>`;
+    }
+    return m;
+  };
+  const pages = [];
+  for (let i = 0; i < cards.length; i += PER_PAGE) pages.push(cards.slice(i, i + PER_PAGE));
+  document.getElementById("print").innerHTML = pages.map(p => `
+    <div class="page">
+      ${cropMarks()}
+      <div class="page-grid hex-icons">${p.map(c => render(c, rows[0].palette)).join("")}</div>
+    </div>`).join("");
+
   // Shrink rules text until it fits the panel (long cards like Aphrodite).
+  // Measured on screen, then copied to the print copies (hidden, so they can't be measured).
   document.fonts.ready.then(() => {
-    document.querySelectorAll(".text").forEach(box => {
-      const rules = box.querySelector(".rules");
+    const shown = [...document.querySelectorAll("#sheet .row:first-child .rules")];
+    shown.forEach(rules => {
+      const box = rules.closest(".text");
       let size = parseFloat(getComputedStyle(rules).fontSize);
       while (box.scrollHeight > box.clientHeight && size > 8) {
         rules.style.fontSize = (size -= 0.25) + "px";
       }
+    });
+    document.querySelectorAll("#print .rules").forEach((rules, i) => {
+      rules.style.fontSize = shown[i].style.fontSize;
     });
   });
 </script>
