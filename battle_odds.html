@@ -157,9 +157,21 @@
   .odds { display: flex; flex-wrap: wrap; gap: 6px 28px; align-items: center; }
   .odds .row { gap: 12px; }
   .odds .stepper input { width: 56px; }
-  .odds .reset { border: 1px solid var(--panel-edge); background: transparent; color: var(--ink-soft);
+  .reset { border: 1px solid var(--panel-edge); background: transparent; color: var(--ink-soft);
     border-radius: 5px; padding: 5px 10px; font: 600 14px "EB Garamond", serif; cursor: pointer; }
-  .odds .reset:hover { border-color: var(--gold); }
+  .reset:hover { border-color: var(--gold); }
+  .faces { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 8px; }
+  @media (max-width: 760px) { .faces { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 400px) { .faces { grid-template-columns: repeat(2, 1fr); } }
+  .face { border: 1px solid var(--panel-edge); border-radius: 6px; padding: 8px; display: flex; flex-direction: column; gap: 5px; }
+  .face .n { font: 400 14px "Capitalis", "EB Garamond", serif; color: var(--ink-muted); text-align: center; }
+  .face .name { font-weight: 600; text-align: center; min-height: 1.45em; }
+  .face .eff { font-size: 13px; color: var(--ink-muted); text-align: center; min-height: 2.6em; line-height: 1.3; }
+  .toggle { border: 1px solid var(--panel-edge); background: transparent; color: var(--ink-soft);
+    border-radius: 4px; padding: 3px 6px; font: 600 14px "EB Garamond", serif; cursor: pointer; }
+  .toggle:hover { border-color: var(--gold); }
+  .toggle[aria-pressed="true"] { background: color-mix(in srgb, var(--gold) 35%, transparent); color: var(--ink); border-color: var(--gold); }
+  .die-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 10px; }
   .rules li { margin-left: 18px; }
   .rules { font-size: 15px; color: var(--ink-soft); display: flex; flex-direction: column; gap: 3px; }
 </style>
@@ -182,11 +194,10 @@
       <h2>Defender</h2>
       <div id="def"></div>
       <div class="row">
-        <label for="struct">Tile <small>free shots before round 1</small></label>
+        <label for="struct">Tile <small>free shot before round 1</small></label>
         <select id="struct">
           <option value="none">Open ground</option>
           <option value="outpost">Outpost (1 shot)</option>
-          <option value="capital">Capital (2 shots)</option>
         </select>
       </div>
       <div class="total" id="defTotal"></div>
@@ -194,11 +205,13 @@
   </section>
 
   <section class="panel">
-    <h2>Dice odds</h2>
-    <p class="note">Chance each side's D20 roll deals 0, 1 or 2 kills per round. A side down to its last unit turns a 2-kill roll into 1 kill. Below that: each archer's opening-shot hit chance, and the chance a slain cavalry dismounts into infantry.</p>
-    <div class="odds" id="odds"></div>
-    <div class="total" id="oddsTotal"></div>
-    <div class="odds" id="unitOdds" style="margin-top:10px"></div>
+    <h2>Battle die</h2>
+    <p class="note">Choose what is on each face. In a round, every sword and arrow is 1 kill, and a shield cancels 1 kill against you. Archer and outpost shots hit on any face with an arrow. A dying cavalry dismounts on a face with both a sword and an arrow.</p>
+    <div class="faces" id="faces"></div>
+    <div class="die-bar">
+      <button type="button" class="reset" id="dieReset">Reset to standard die</button>
+      <span class="total" id="dieSummary" style="margin:0"></span>
+    </div>
   </section>
 
   <section class="tiles" id="tiles"></section>
@@ -210,6 +223,22 @@
       <span><i style="background:var(--def)"></i>Defender wins</span>
       <span><i style="background:var(--draw)"></i>Both wiped out</span>
       <span><i style="background:var(--atk)"></i>Attacker wins</span>
+      <label style="margin-left:auto;display:inline-flex;align-items:center;gap:8px">Y-axis max
+        <select id="outMax">
+          <option value="auto">Auto</option>
+          <option value="0.05">5%</option>
+          <option value="0.1">10%</option>
+          <option value="0.15">15%</option>
+          <option value="0.2">20%</option>
+          <option value="0.25">25%</option>
+          <option value="0.3">30%</option>
+          <option value="0.4">40%</option>
+          <option value="0.5">50%</option>
+          <option value="0.6">60%</option>
+          <option value="0.8">80%</option>
+          <option value="1">100%</option>
+        </select>
+      </label>
     </div>
     <div class="chart" id="outChart"></div>
     <details>
@@ -221,7 +250,7 @@
   <section class="two">
     <div class="panel">
       <h2>Battle length</h2>
-      <p class="note">Rounds of D20 rolls until it ends. Round 0 means the opening archer and tile shots decided it.</p>
+      <p class="note">Rounds of die rolls until it ends. Round 0 means the opening archer and outpost shots decided it.</p>
       <div class="chart" id="roundChart"></div>
     </div>
     <div class="panel">
@@ -247,10 +276,10 @@
     <ul class="rules">
       <li id="archerRule"></li>
       <li id="roundRule"></li>
-      <li><b>Casualties:</b> infantry die first, then cavalry, then archers.</li>
+      <li><b>Casualties:</b> the owner chooses which units die. This page assumes infantry die first, then cavalry, then archers.</li>
       <li id="cavRule"></li>
-      <li><b>Kill experience</b> counts every unit removed, including cavalry that dismount.</li>
-      <li>Not modelled: battles with 3+ players, the 12/24 unit caps on dismounted infantry, and what happens after (evictions, sending extra units home).</li>
+      <li><b>Battle experience</b> counts every unit removed, including cavalry that dismount.</li>
+      <li>Not modelled: battles with 3+ players, god cards, the 12-infantry cap on dismounted infantry, and what happens after the battle (line-battle advances, sending extra units home).</li>
     </ul>
   </section>
 </main>
@@ -258,23 +287,65 @@
 
 <script>
 // ---------- Rules ----------
-let P_ARCHER = 10 / 20;     // 11–20 (editable in the UI)
-const P_STRUCT = 10 / 20;   // 11–20
-let P_DISMOUNT = 7 / 20;    // 14–20 (editable in the UI)
-const SHOTS = { none: 0, outpost: 1, capital: 2 };
-const STRUCT_NAME = { none: "open ground", outpost: "outpost", capital: "capital" };
+// The battle die: each face is any mix of sword, arrow and shield (editable in the UI).
+const STANDARD_FACES = [
+  { sword: false, arrow: false, shield: false },
+  { sword: false, arrow: false, shield: true },
+  { sword: true, arrow: false, shield: false },
+  { sword: false, arrow: true, shield: false },
+  { sword: true, arrow: true, shield: false },
+  { sword: true, arrow: true, shield: false },
+];
+const DIE_KEY = "oo-battle-die";
+let faces = STANDARD_FACES.map(f => ({ ...f }));
+try {
+  const saved = JSON.parse(localStorage.getItem(DIE_KEY));
+  if (Array.isArray(saved) && saved.length === 6) faces = saved.map(f => ({ sword: !!f.sword, arrow: !!f.arrow, shield: !!f.shield }));
+} catch (e) {}
+
+let P_ARCHER = 0.5;   // chance one archer / outpost shot hits
+let P_DISMOUNT = 1 / 3;
+let ROUND_MULTI = [];  // [{k, s, p}] round roll for a side with 2+ units
+let ROUND_ONE = [];    // same, for a side down to its last unit (2 kills -> 1)
+const SHOTS = { none: 0, outpost: 1 };
+const STRUCT_NAME = { none: "open ground", outpost: "outpost" };
+
+// Casualty order: infantry, then cavalry, then archers (indices into [inf, cav, arch]).
+const LOSS_ORDER = [0, 1, 2];
 
 const tot = c => c[0] + c[1] + c[2];
 const ck = c => c.join(",");
 
-// Round roll chances for 0 / 1 / 2 kills, in percent (editable in the UI).
-const DEFAULT_ODDS = [25, 50, 25];
-const odds = DEFAULT_ODDS.slice();
-let ROLL = [0.25, 0.5, 0.25]; // normalised probabilities used by the simulation
+function deriveDie() {
+  const n = faces.length;
+  P_ARCHER = faces.filter(f => f.arrow).length / n;
+  P_DISMOUNT = faces.filter(f => f.sword && f.arrow).length / n;
+  const build = cap => {
+    const m = new Map();
+    for (const f of faces) {
+      let k = (f.sword ? 1 : 0) + (f.arrow ? 1 : 0);
+      if (cap) k = Math.min(k, 1);
+      const s = f.shield ? 1 : 0, key = k + "|" + s;
+      const e = m.get(key);
+      if (e) e.p += 1 / n; else m.set(key, { k, s, p: 1 / n });
+    }
+    return [...m.values()];
+  };
+  ROUND_MULTI = build(false);
+  ROUND_ONE = build(true);
+}
+const rollDist = n => (n === 1 ? ROUND_ONE : ROUND_MULTI);
 
-function rollDist(n) {
-  const [p0, p1, p2] = ROLL;
-  return n === 1 ? [[0, p0], [1, p1 + p2]] : [[0, p0], [1, p1], [2, p2]];
+// Joint distribution of [kills on defender, kills on attacker] for one round.
+function roundJoint(s) {
+  const out = new Map();
+  for (const a of rollDist(tot(s.A))) for (const d of rollDist(tot(s.D))) {
+    const onD = Math.max(0, a.k - d.s), onA = Math.max(0, d.k - a.s);
+    const key = onD + "|" + onA;
+    const e = out.get(key);
+    if (e) e[2] += a.p * d.p; else out.set(key, [onD, onA, a.p * d.p]);
+  }
+  return [...out.values()];
 }
 
 function binom(n, p) {
@@ -294,27 +365,31 @@ function convolve(a, b) {
   return out.map((p, k) => [k, p || 0]);
 }
 
-// Apply k kills to composition [inf, cav, arch]; returns [{c, p, r}] where r = units removed.
+// Apply k kills to composition [inf, cav, arch], losing units in LOSS_ORDER;
+// returns [{c, p, r}] where r = units removed.
 const killMemo = new Map();
 function applyKills(comp, k) {
   const key = ck(comp) + "|" + k;
   if (killMemo.has(key)) return killMemo.get(key);
+  const idx = LOSS_ORDER;
   let cur = [{ c: comp, p: 1, r: 0 }];
   for (let j = 0; j < k; j++) {
     const nx = new Map();
     const add = (c, p, r) => {
+      if (p === 0) return;
       const kk = ck(c) + "|" + r;
       const e = nx.get(kk);
       if (e) e.p += p; else nx.set(kk, { c, p, r });
     };
     for (const s of cur) {
-      const [i, c, a] = s.c;
-      if (i > 0) add([i - 1, c, a], s.p, s.r + 1);
-      else if (c > 0) {
-        add([1, c - 1, a], s.p * P_DISMOUNT, s.r + 1);
-        add([0, c - 1, a], s.p * (1 - P_DISMOUNT), s.r + 1);
-      } else if (a > 0) add([0, 0, a - 1], s.p, s.r + 1);
-      else add(s.c, s.p, s.r);
+      const u = idx.find(i => s.c[i] > 0);
+      if (u === undefined) { add(s.c, s.p, s.r); continue; }
+      const c = s.c.slice(); c[u]--;
+      if (u === 1) {
+        const m = c.slice(); m[0]++;
+        add(m, s.p * P_DISMOUNT, s.r + 1);
+        add(c, s.p * (1 - P_DISMOUNT), s.r + 1);
+      } else add(c, s.p, s.r + 1);
     }
     cur = [...nx.values()];
   }
@@ -324,27 +399,25 @@ function applyKills(comp, k) {
 
 // Exact forward propagation over battle states.
 function simulate(A0, D0, struct) {
-  const res = { outcomes: new Map(), rounds: [], xpA: 0, xpD: 0, pA: 0, pD: 0, pW: 0, eRounds: 0 };
+  const res = { outcomes: new Map(), rounds: [], xpA: 0, xpD: 0, pA: 0, pD: 0, pW: 0, pOpen: 0, eRounds: 0 };
   const put = (m, A, D, p) => {
     const k = ck(A) + "/" + ck(D);
     const e = m.get(k);
     if (e) e.p += p; else m.set(k, { A, D, p });
   };
-  const step = (states, distA, distD) => {
-    // distA(state) -> kills dealt by attacker; distD(state) -> kills dealt to attacker
+  // joint(state) -> [[kills on defender, kills on attacker, p]]
+  const step = (states, joint) => {
     const nx = new Map();
     for (const s of states.values()) {
-      for (const [ka, pa] of distA(s)) {
-        const dOut = applyKills(s.D, ka);
-        for (const [kd, pd] of distD(s)) {
-          const aOut = applyKills(s.A, kd);
-          for (const d of dOut) for (const a of aOut) {
-            const p = s.p * pa * pd * d.p * a.p;
-            if (p === 0) continue;
-            res.xpA += p * d.r;
-            res.xpD += p * a.r;
-            put(nx, a.c, d.c, p);
-          }
+      for (const [kOnD, kOnA, pk] of joint(s)) {
+        const dOut = applyKills(s.D, kOnD);
+        const aOut = applyKills(s.A, kOnA);
+        for (const d of dOut) for (const a of aOut) {
+          const p = s.p * pk * d.p * a.p;
+          if (p === 0) continue;
+          res.xpA += p * d.r;
+          res.xpD += p * a.r;
+          put(nx, a.c, d.c, p);
         }
       }
     }
@@ -368,45 +441,68 @@ function simulate(A0, D0, struct) {
   };
 
   let states = new Map([[ck(A0) + "/" + ck(D0), { A: A0, D: D0, p: 1 }]]);
-  // Opening volley: archers both ways + tile shots at the attacker.
-  states = step(states,
-    s => binom(s.A[2], P_ARCHER),
-    s => convolve(binom(s.D[2], P_ARCHER), binom(SHOTS[struct], P_STRUCT)));
+  // Opening volley: archers both ways + outpost shot at the attacker. Shields don't apply.
+  states = step(states, s => {
+    const dA = binom(s.A[2], P_ARCHER);
+    const dD = convolve(binom(s.D[2], P_ARCHER), binom(SHOTS[struct], P_ARCHER));
+    const out = [];
+    for (const [ka, pa] of dA) for (const [kd, pd] of dD) out.push([ka, kd, pa * pd]);
+    return out;
+  });
   let live = settle(states, 0);
-  let round = 0;
+  let round = 0, mass = 1;
   while (live.size && round < 2000) {
     round++;
-    live = step(live, s => rollDist(tot(s.A)), s => rollDist(tot(s.D)));
+    live = step(live, roundJoint);
     live = settle(live, round);
-    let mass = 0;
+    mass = 0;
     for (const s of live.values()) mass += s.p;
     if (mass < 1e-13) break;
   }
+  res.pOpen = live.size ? mass : 0;
+  res.eRounds = (res.pA + res.pD + res.pW) > 0 ? res.eRounds / (res.pA + res.pD + res.pW) : 0;
   for (let i = 0; i < res.rounds.length; i++) res.rounds[i] = res.rounds[i] || 0;
   return res;
 }
 
 // ---------- UI state ----------
-const UNITS = [["inf", "Infantry", 24], ["cav", "Cavalry", 12], ["arch", "Archers", 12]];
+const UNITS = [["inf", "Infantry"], ["cav", "Cavalry"], ["arch", "Archers"]];
 const state = { atk: [4, 1, 1], def: [3, 1, 0], struct: "none" };
+
+// Y-axis max of the "How the battle ends" chart ("auto" or a fraction), remembered per browser.
+const MAX_KEY = "oo-outcome-ymax";
+let outMax = "auto";
+{
+  const sel = document.getElementById("outMax");
+  try {
+    const saved = localStorage.getItem(MAX_KEY);
+    if (saved && [...sel.options].some(o => o.value === saved)) outMax = saved;
+  } catch (e) {}
+  sel.value = outMax;
+  sel.onchange = () => {
+    outMax = sel.value;
+    try { localStorage.setItem(MAX_KEY, outMax); } catch (e) {}
+    schedule();
+  };
+}
 
 function buildSide(id, side) {
   const host = document.getElementById(id);
   host.innerHTML = "";
-  UNITS.forEach(([key, label, max], idx) => {
+  UNITS.forEach(([key, label], idx) => {
     const row = document.createElement("div");
     row.className = "row";
     const inputId = `${side}-${key}`;
     row.innerHTML = `<label for="${inputId}">${label}</label>
       <span class="stepper">
         <button type="button" aria-label="Fewer ${label}">−</button>
-        <input id="${inputId}" type="number" min="0" max="${max}" value="${state[side][idx]}">
+        <input id="${inputId}" type="number" min="0" value="${state[side][idx]}">
         <button type="button" aria-label="More ${label}">+</button>
       </span>`;
     const [minus, plus] = row.querySelectorAll("button");
     const input = row.querySelector("input");
     const set = v => {
-      v = Math.max(0, Math.min(max, Math.round(+v || 0)));
+      v = Math.max(0, Math.round(+v || 0));
       state[side][idx] = v; input.value = v; schedule();
     };
     minus.onclick = () => set(state[side][idx] - 1);
@@ -422,60 +518,61 @@ function rebuildInputs() {
   document.getElementById("struct").value = state.struct;
 }
 
-function buildOdds() {
-  const host = document.getElementById("odds");
+// ---------- Die editor ----------
+const SYMS = [["sword", "Sword"], ["arrow", "Arrow"], ["shield", "Shield"]];
+const faceName = f => SYMS.filter(([k]) => f[k]).map(([, l]) => l).join(" + ") || "Blank";
+function faceEffect(f) {
+  const k = (f.sword ? 1 : 0) + (f.arrow ? 1 : 0);
+  const parts = [k ? `${k} kill${k > 1 ? "s" : ""}` : "0 kills"];
+  if (f.shield) parts.push("blocks 1");
+  if (f.arrow) parts.push("archer hit");
+  if (f.sword && f.arrow) parts.push("dismount");
+  return parts.join(" · ");
+}
+function buildFaces() {
+  const host = document.getElementById("faces");
   host.innerHTML = "";
-  ["0 kills", "1 kill", "2 kills"].forEach((label, idx) => {
-    const row = document.createElement("div");
-    row.className = "row";
-    const inputId = `odds-${idx}`;
-    row.innerHTML = `<label for="${inputId}">${label}</label>
-      <span class="stepper">
-        <button type="button" aria-label="Lower chance of ${label}">−</button>
-        <input id="${inputId}" type="number" min="0" max="100" step="any" value="${+odds[idx].toFixed(1)}">
-        <button type="button" aria-label="Raise chance of ${label}">+</button>
-      </span>%`;
-    const [minus, plus] = row.querySelectorAll("button");
-    const input = row.querySelector("input");
-    const set = v => {
-      v = Math.max(0, Math.min(100, Math.round((+v || 0) * 10) / 10));
-      odds[idx] = v; input.value = v; oddsChanged();
-    };
-    minus.onclick = () => set(odds[idx] - 5);
-    plus.onclick = () => set(odds[idx] + 5);
-    input.onchange = () => set(input.value);
-    host.appendChild(row);
-  });
-  const presets = [
-    ["¼ / ½ / ¼", DEFAULT_ODDS],
-    ["⅓ / ⅓ / ⅓", [100 / 3, 100 / 3, 100 / 3]],
-    ["⅙ / ⅔ / ⅙", [100 / 6, 200 / 3, 100 / 6]],
-  ];
-  presets.forEach(([label, vals]) => {
-    const b = document.createElement("button");
-    b.type = "button"; b.className = "reset"; b.textContent = label;
-    b.onclick = () => { odds.splice(0, 3, ...vals); buildOdds(); oddsChanged(); };
-    host.appendChild(b);
+  faces.forEach((f, i) => {
+    const el = document.createElement("div");
+    el.className = "face";
+    el.innerHTML = `<div class="n">Face ${i + 1}</div>
+      <div class="name">${faceName(f)}</div>
+      ${SYMS.map(([k, l]) => `<button type="button" class="toggle" data-k="${k}" aria-pressed="${f[k]}" aria-label="Face ${i + 1}: ${l}">${l}</button>`).join("")}
+      <div class="eff">${faceEffect(f)}</div>`;
+    el.querySelectorAll(".toggle").forEach(b => {
+      b.onclick = () => { f[b.dataset.k] = !f[b.dataset.k]; buildFaces(); dieChanged(); };
+    });
+    host.appendChild(el);
   });
 }
+document.getElementById("dieReset").onclick = () => {
+  faces = STANDARD_FACES.map(f => ({ ...f }));
+  buildFaces(); dieChanged();
+};
 
-function oddsChanged() {
-  const sum = odds[0] + odds[1] + odds[2];
-  const fmt = v => +v.toFixed(1);
-  const totalEl = document.getElementById("oddsTotal");
-  if (sum <= 0) {
-    ROLL = [1, 0, 0];
-    totalEl.innerHTML = `<span class="warn">All chances are 0 — treating every roll as 0 kills.</span>`;
-  } else {
-    ROLL = odds.map(v => v / sum);
-    totalEl.innerHTML = Math.abs(sum - 100) < 1e-6 ? `Total 100%` :
-      `<span class="warn">Total ${fmt(sum)}%</span> · scaled to ${ROLL.map(p => fmt(p * 100)).join(" / ")}%`;
-  }
-  const [p0, p1, p2] = ROLL.map(p => fmt(p * 100));
+function dieChanged() {
+  try { localStorage.setItem(DIE_KEY, JSON.stringify(faces)); } catch (e) {}
+  deriveDie();
+  const f = v => +(v * 100).toFixed(1);
+  const n = faces.length;
+  const count = pred => faces.filter(pred).length;
+  const kills = [0, 1, 2].map(k => count(x => (x.sword ? 1 : 0) + (x.arrow ? 1 : 0) === k));
+  const shields = count(x => x.shield);
+  const arrows = count(x => x.arrow), dis = count(x => x.sword && x.arrow);
+  const killText = kills.map((c, k) => c ? `${k} kill${k === 1 ? "" : "s"} ${c}/${n}` : "").filter(Boolean).join(", ");
+  const noKill = kills[1] + kills[2] === 0;
+  document.getElementById("dieSummary").innerHTML =
+    (noKill ? `<span class="warn">No face scores a kill, so rounds never end a battle.</span> ` : "") +
+    `Per round: ${killText}${shields ? `; shield on ${shields}/${n}` : ""}. Archer hit ${arrows}/${n} (${f(P_ARCHER)}%). Dismount ${dis}/${n} (${f(P_DISMOUNT)}%).`;
+  document.getElementById("archerRule").innerHTML =
+    `<b>Before round 1:</b> every archer on both sides rolls the die once and scores 1 kill on any face with an arrow (${f(P_ARCHER)}%). An outpost fires 1 shot at the attacker with the same odds. Shields don't count here. These all happen at the same time.`;
   document.getElementById("roundRule").innerHTML =
-    `<b>Each round:</b> each side rolls one D20: ${p0}% chance of 0 kills, ${p1}% of 1 kill, ${p2}% of 2 kills (only 1 kill if that side is down to its last unit). Both sides' kills land at the same time.`;
+    `<b>Each round:</b> each side rolls the die. Each sword and each arrow is 1 kill (${killText}). A shield cancels 1 kill against you that round. A side down to its last unit scores at most 1 kill. Both sides' kills land at the same time.`;
+  document.getElementById("cavRule").innerHTML =
+    `<b>Cavalry:</b> each cavalry death rolls the die and dismounts into a new infantry on a face with both a sword and an arrow (${f(P_DISMOUNT)}%). That infantry joins immediately and can be hit by later kills from the same roll.`;
   probsChanged();
 }
+
 let heatTimer;
 function probsChanged() {
   heatCache = {};
@@ -483,44 +580,6 @@ function probsChanged() {
   clearTimeout(heatTimer);
   heatTimer = setTimeout(renderHeat, 150);
   schedule();
-}
-
-// Archer hit chance and cavalry dismount chance, in percent.
-const unitOdds = { archer: 50, cav: 35 };
-function buildUnitOdds() {
-  const host = document.getElementById("unitOdds");
-  host.innerHTML = "";
-  [["archer", "Archer hit", "Default 50"], ["cav", "Cavalry dismount", "Default 35"]].forEach(([key, label, hint]) => {
-    const row = document.createElement("div");
-    row.className = "row";
-    const inputId = `unit-${key}`;
-    row.innerHTML = `<label for="${inputId}">${label} <small>${hint}</small></label>
-      <span class="stepper">
-        <button type="button" aria-label="Lower ${label} chance">−</button>
-        <input id="${inputId}" type="number" min="0" max="100" step="any" value="${+unitOdds[key].toFixed(1)}">
-        <button type="button" aria-label="Raise ${label} chance">+</button>
-      </span>%`;
-    const [minus, plus] = row.querySelectorAll("button");
-    const input = row.querySelector("input");
-    const set = v => {
-      v = Math.max(0, Math.min(100, Math.round((+v || 0) * 10) / 10));
-      unitOdds[key] = v; input.value = v; unitOddsChanged();
-    };
-    minus.onclick = () => set(unitOdds[key] - 5);
-    plus.onclick = () => set(unitOdds[key] + 5);
-    input.onchange = () => set(input.value);
-    host.appendChild(row);
-  });
-}
-function unitOddsChanged() {
-  P_ARCHER = unitOdds.archer / 100;
-  P_DISMOUNT = unitOdds.cav / 100;
-  const f = v => +v.toFixed(1);
-  document.getElementById("archerRule").innerHTML =
-    `<b>Before round 1:</b> every archer on both sides rolls once (${f(unitOdds.archer)}% chance of 1 kill). An outpost fires 1 shot and a capital fires 2 at the attacker (11–20 = 1 kill each). These all happen at the same time.`;
-  document.getElementById("cavRule").innerHTML =
-    `<b>Cavalry:</b> each cavalry death has a ${f(unitOdds.cav)}% chance to dismount into a new infantry. That infantry is next in line, so a second kill from the same roll hits it.`;
-  probsChanged();
 }
 
 document.getElementById("struct").onchange = e => { state.struct = e.target.value; renderHeat(); schedule(); };
@@ -566,20 +625,20 @@ function barChart(host, items, opts = {}) {
   const m = { t: 18, r: 8, b: opts.xTitle || opts.groups ? 46 : 30, l: 44 };
   const iw = W - m.l - m.r, ih = H - m.t - m.b;
   const maxV = Math.max(...items.map(d => d.value), 1e-9);
-  const niceMax = niceCeil(maxV);
+  const niceMax = opts.yMax || niceCeil(maxV);
   const ticks = 4;
   const n = items.length;
   const band = iw / n;
   const gap = Math.min(6, Math.max(2, band * 0.18));
   const bw = Math.max(1, band - gap);
-  const y = v => m.t + ih - (v / niceMax) * ih;
+  const y = v => m.t + ih - (Math.min(v, niceMax) / niceMax) * ih; // bars above the max are clipped
   const labelEvery = Math.ceil(n / Math.max(1, Math.floor(iw / 26)));
 
   let s = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="${opts.aria || ""}">`;
   for (let i = 0; i <= ticks; i++) {
     const v = niceMax * i / ticks, yy = y(v);
     s += `<line class="gridline" x1="${m.l}" x2="${W - m.r}" y1="${yy}" y2="${yy}"/>`;
-    s += `<text x="${m.l - 6}" y="${yy + 4}" text-anchor="end">${Math.round(v * 100)}%</text>`;
+    s += `<text x="${m.l - 6}" y="${yy + 4}" text-anchor="end">${+(v * 100).toFixed(2)}%</text>`;
   }
   items.forEach((d, i) => {
     const x = m.l + i * band + gap / 2;
@@ -628,7 +687,7 @@ function render() {
 
   const tiles = document.getElementById("tiles");
   if (ta === 0 || (td === 0 && struct === "none")) {
-    tiles.innerHTML = `<div class="tile" style="grid-column:1/-1"><span class="warn">${ta === 0 ? "The attacker needs at least one unit." : "The defender needs at least one unit, or an outpost or capital on the tile."}</span></div>`;
+    tiles.innerHTML = `<div class="tile" style="grid-column:1/-1"><span class="warn">${ta === 0 ? "The attacker needs at least one unit." : "The defender needs at least one unit, or an outpost on the tile."}</span></div>`;
     ["outChart", "roundChart"].forEach(id => document.getElementById(id).innerHTML = "");
     document.getElementById("outTable").innerHTML = "";
     document.getElementById("compTable").innerHTML = "";
@@ -646,13 +705,14 @@ function render() {
     if (o.key[0] === "D") survD += o.p * tot(o.comp);
   }
   const drawNote = struct === "none" ? "tile left empty" : `tile left empty, ${STRUCT_NAME[struct]} stands`;
-  const atkWinNote = struct === "outpost" ? "outpost destroyed" : struct === "capital" ? "then evicted from the capital" : "";
+  const atkWinNote = struct === "outpost" ? "outpost destroyed" : "";
   tiles.innerHTML = `
     <div class="tile"><div class="k"><i style="background:var(--atk)"></i>Attacker wins</div><div class="v">${pct(res.pA)}</div><div class="s">${res.pA ? `avg ${(survA / res.pA).toFixed(1)} left` : "&nbsp;"}${atkWinNote && res.pA ? " · " + atkWinNote : ""}</div></div>
     <div class="tile"><div class="k"><i style="background:var(--def)"></i>Defender wins</div><div class="v">${pct(res.pD)}</div><div class="s">${res.pD ? `avg ${(survD / res.pD).toFixed(1)} left` : "&nbsp;"}</div></div>
     <div class="tile"><div class="k"><i style="background:var(--draw)"></i>Both wiped out</div><div class="v">${pct(res.pW)}</div><div class="s">${drawNote}</div></div>
     <div class="tile"><div class="k">Average length</div><div class="v">${res.eRounds.toFixed(1)}</div><div class="s">rounds</div></div>
-    <div class="tile"><div class="k">Kill experience</div><div class="v">${res.xpA.toFixed(1)} <span style="font-size:18px;color:var(--ink-muted)">vs</span> ${res.xpD.toFixed(1)}</div><div class="s">average for attacker vs defender</div></div>
+    <div class="tile"><div class="k">Battle experience</div><div class="v">${res.xpA.toFixed(1)} <span style="font-size:18px;color:var(--ink-muted)">vs</span> ${res.xpD.toFixed(1)}</div><div class="s">average for attacker vs defender</div></div>
+    ${res.pOpen > 0.0005 ? `<div class="tile"><div class="k">Never ends</div><div class="v warn">${pct(res.pOpen)}</div><div class="s">this die can't finish the battle</div></div>` : ""}
   `;
 
   // Outcome distribution by survivors
@@ -684,7 +744,7 @@ function render() {
   const groups = [];
   if (drawIdx > 0) groups.push({ from: 0, to: drawIdx - 1, label: "← Defender units left" });
   groups.push({ from: drawIdx + 1, to: items.length - 1, label: "Attacker units left →" });
-  barChart(document.getElementById("outChart"), items, { height: 260, groups, aria: "Distribution of battle outcomes" });
+  barChart(document.getElementById("outChart"), items, { height: 260, yMax: outMax === "auto" ? null : +outMax, groups, aria: "Distribution of battle outcomes" });
 
   document.getElementById("outTable").innerHTML =
     `<tr><th>Outcome</th><th class="num">Units left</th><th class="num">Chance</th></tr>` +
@@ -692,7 +752,9 @@ function render() {
 
   // Rounds
   let cut = res.rounds.length - 1, cum = 0;
-  for (let i = 0; i < res.rounds.length; i++) { cum += res.rounds[i]; if (cum > 0.995) { cut = i; break; } }
+  const ended = 1 - res.pOpen;
+  for (let i = 0; i < res.rounds.length; i++) { cum += res.rounds[i]; if (cum > 0.995 * ended) { cut = i; break; } }
+  cut = Math.min(cut, 60);
   const rItems = [];
   for (let i = 0; i <= cut; i++) {
     rItems.push({ label: i, value: res.rounds[i], color: "var(--neutral-bar)",
@@ -780,10 +842,8 @@ function renderHeatMark() {
 
 // ---------- Boot ----------
 rebuildInputs();
-buildOdds();
-buildUnitOdds();
-unitOddsChanged();
-oddsChanged(); // also schedules the heatmap and main render
+buildFaces();
+dieChanged(); // also schedules the heatmap and main render
 let rz;
 addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(render, 120); });
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { renderHeat(); render(); });
