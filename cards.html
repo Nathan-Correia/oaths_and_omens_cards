@@ -387,11 +387,11 @@
   // Set art to an image path; until then the emblem (if any) is shown as a placeholder.
   const cards = [
     { god: "Zeus", name: "Smite", emblem: "e-bolt", cost: ["N", "×", "any"],
-      rules: "During a battle, at any time after the archer volley, pay N resources (up to 3) to kill N enemy units." },
+      rules: "Reveal when drawn. Anytime after the archer volley of a battle, pay N resources (up to 3) to kill N enemy units." },
     { god: "Poseidon", name: "High Tide", emblem: "e-trident", cost: ["fish", "fish", "any"],
       rules: "Before the movement phase, spawn 2 cavalry units on an empty tile next to any lake." },
     { god: "Hades", name: "Relinquish", emblem: "e-bident", cost: ["N", "×", "any"],
-      rules: "After a battle, pay N resources (up to 3) to revive N lost units as hoplites at your capital." },
+      rules: "After a battle, pay N resources (up to 3) to revive N lost units at an outpost you own." },
     { god: "Hera", name: "Dowry", emblem: "e-crown", cost: [],
       rules: "During the collection phase, choose a player. They give you 2 gold, and 1 resource of your choice." },
     { god: "Apollo", name: "Volley", emblem: "e-sun", cost: ["wood", "ore"],
@@ -400,31 +400,36 @@
       rules: "During the archer volley, instead of rolling, each of your archers kills an enemy unit." },
     { god: "Demeter", name: "Harvest", emblem: "e-wheat", cost: [],
       rules: "At the start of the collection phase, select one resource type. All generation of that resource doubles this turn." },
-    { god: "Nike", name: "Victory", emblem: "e-laurel", cost: ["clay"],
-      rules: "Play at any time. Gain 1 victory point. This card cannot be traded." },
     { god: "Athena", name: "Encircle", emblem: "e-owl", cost: ["fish"],
-      rules: "During a battle, after the archer volley, your blank rolls count as 1 kill, and you ignore the 1 unit kill cap." },
+      rules: "During a battle, after the archer volley, you get +1 kill when you roll a blank or shield, and you ignore the 1 unit kill cap." },
     { god: "Hermes", name: "Fleet Footed", emblem: "e-caduceus", cost: ["fish"],
       rules: "After the movement phase has ended, move one additional step." },
     { god: "Hephaestus", name: "Forge", emblem: "e-forge", cost: ["ore"],
-      rules: "During the buy phase, roll 1 die. Upgrade units equal to the icons rolled +1." },
+      rules: "During the muster phase, roll 1 die. Upgrade units equal to the kills rolled +1." },
     { god: "Ares", name: "Charge", emblem: "e-helmet", cost: ["fish"],
-      rules: "During a battle, after the archer volley, your double rolls count as 3 kills, and you ignore the 1 unit kill cap." },
+      rules: "During a battle, after the archer volley, your sword + arrow faces count as 3 kills, and you ignore the 1 unit kill cap." },
     { god: "Aphrodite", name: "Allure", emblem: "e-shell", cost: ["clay", "clay"],
       rules: "At the start of a battle, convert one enemy unit of your choice to your side." },
     { god: "Dionysus", name: "Midas Touch", emblem: "e-grapes", cost: ["clay", "any"],
       rules: "At any time, receive 5 gold." },
     { god: "Hestia", name: "Hearth", emblem: "e-hearth", cost: ["wood"],
-      rules: "When building an outpost, play this card to ignore placement restrictions from other players’ outposts." },
+      rules: "During the build phase, change an outpost's upgrade and/or its resource token. This does not use your build action." },
     { god: "The Fates", name: "Weave", emblem: "e-shears", cost: ["any"],
       rules: "Choose one of your dice rolls. You may reroll it up to 3 times." },
     { god: "Atlas", name: "Tremor", emblem: "e-globe", cost: ["ore", "any"],
       rules: "At the start of the movement phase, choose a tile. Each army on it or an adjacent tile loses 1 unit (owner's choice)." },
-    { god: "Prometheus", name: "Foresight", emblem: "e-torch", cost: [],
+    { god: "Prometheus", name: "Foresight", emblem: "e-torch", cost: ["any"],
       rules: "Before one movement step, play this card. You take your step before anyone else does." },
-    { god: "Hypno", name: "Lull", emblem: "e-sleep", cost: [],
+    { god: "Hypno", name: "Lull", emblem: "e-sleep", cost: ["clay"],
       rules: "Before a standard or cavalry movement step, select a player. That player cannot move during that step." }
   ];
+
+  // Optional subset: cards.html?only=Zeus,Hades shows and prints just those gods.
+  const only = new URLSearchParams(location.search).get("only");
+  if (only) {
+    const keep = only.split(",").map(s => s.trim().toLowerCase());
+    cards.splice(0, cards.length, ...cards.filter(c => keep.includes(c.god.toLowerCase())));
+  }
 
   // Resource names become pictures; anything else (N, ×) is printed as text.
   const resources = ["fish", "clay", "wood", "ore", "any"];
