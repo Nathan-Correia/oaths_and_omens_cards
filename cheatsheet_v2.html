@@ -106,7 +106,7 @@ body{margin:0;background:#888}
 /* Face B: phases stacked left, dice right */
 .cols-b{display:grid;grid-template-columns:1fr 2.75in;gap:.25in;flex:1;min-height:0}
 .phase-col,.dice-col{display:flex;flex-direction:column;min-height:0}
-.phases{display:flex;flex-direction:column;gap:5px;flex:1;justify-content:space-between}
+.phases{display:grid;grid-template-rows:repeat(6,1fr);gap:5px;flex:1;min-height:0}
 .phases .ph{margin:0;grid-template-columns:.62in .72in 1fr;padding:3px 10px 3px 8px}
 .phases .pimg{height:.68in;width:.72in} .phases .pimg.p-gold,.phases .pimg.p-xp{height:.5in}
 .phases .pname{font-size:14pt}
@@ -119,6 +119,9 @@ body{margin:0;background:#888}
 .phases .ph:first-child .pname{grid-column:1/-1}
 .phases .ph:first-child .box{margin-top:0}
 .phases .ph:first-child ul{white-space:nowrap}
+/* Keep the card-cost note and the long Retreat bullet on one line each */
+.phases .ph:first-child .box .small{white-space:nowrap;font-size:10pt}
+.phases .ph:nth-child(5) li{white-space:nowrap;letter-spacing:-.005em}
 .phases .box{padding:3px 8px}
 .phases .ccs{gap:8px} .phases .cc .ico{height:.24in} .phases .cc svg.card{width:.19in;height:.28in}
 /* Rectification bullets fit on fewer lines in the wide column */
@@ -306,7 +309,7 @@ body{margin:0;background:#888}
 </div></div></div></div></div><div class="sheet"><i class="crop v" style="left:50%;top:.04in"></i><i class="crop v" style="left:50%;bottom:.04in"></i><i class="crop h" style="top:50%;left:.04in"></i><i class="crop h" style="top:50%;right:.04in"></i><div class="slot" style="--pc:#4d7a36;--pc-ink:#f7ead2"><div class="face face-b" data-colour="green"><div class="frame">
 <div class="cols-b">
   <section class="phase-col"><h2>Phases of a Round</h2><div class="phases"><div class="ph"><div class="pn"><div class="rn">I</div></div><img class="pimg p-hoplite" data-k="if956b65f" src="data:,">
-<div class="pb"><div class="pname">Recruitment <span class="lead"></span></div><ul><li>Buy cards</li><li>Buy hoplites</li><li>Upgrade units</li></ul>
+<div class="pb"><div class="pname">Recruit <span class="lead"></span></div><ul><li>Buy cards</li><li>Buy hoplites</li><li>Upgrade units</li></ul>
  <div class="box"><div class="bt">Card cost</div><div class="ccs"><span class="cc"><span class="ord">1st</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 100" class="ico card"><rect x="4" y="4" width="62" height="92" rx="7" fill="#2b221c"/>
 <rect x="9" y="9" width="52" height="82" rx="4" fill="#2a3342" stroke="#b8935a" stroke-width="2"/><rect x="13" y="13" width="44" height="13" rx="2" fill="#ecdfc5"/>
 <rect x="13" y="68" width="44" height="19" rx="2" fill="#ecdfc5"/><circle cx="35" cy="47" r="9" fill="none" stroke="#7d8798" stroke-width="2.5"/></svg><span class="eq">=</span><img class="ico any " data-k="i7096ba22" src="data:," alt="Any resource"></span><span class="cc"><span class="ord">2nd</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 100" class="ico card"><rect x="4" y="4" width="62" height="92" rx="7" fill="#2b221c"/>
@@ -356,7 +359,7 @@ body{margin:0;background:#888}
 </div></div></div></div><div class="slot" style="--pc:#a8343c;--pc-ink:#f7ead2"><div class="face face-b" data-colour="red"><div class="frame">
 <div class="cols-b">
   <section class="phase-col"><h2>Phases of a Round</h2><div class="phases"><div class="ph"><div class="pn"><div class="rn">I</div></div><img class="pimg p-hoplite" data-k="if956b65f" src="data:,">
-<div class="pb"><div class="pname">Recruitment <span class="lead"></span></div><ul><li>Buy cards</li><li>Buy hoplites</li><li>Upgrade units</li></ul>
+<div class="pb"><div class="pname">Recruit <span class="lead"></span></div><ul><li>Buy cards</li><li>Buy hoplites</li><li>Upgrade units</li></ul>
  <div class="box"><div class="bt">Card cost</div><div class="ccs"><span class="cc"><span class="ord">1st</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 100" class="ico card"><rect x="4" y="4" width="62" height="92" rx="7" fill="#2b221c"/>
 <rect x="9" y="9" width="52" height="82" rx="4" fill="#2a3342" stroke="#b8935a" stroke-width="2"/><rect x="13" y="13" width="44" height="13" rx="2" fill="#ecdfc5"/>
 <rect x="13" y="68" width="44" height="19" rx="2" fill="#ecdfc5"/><circle cx="35" cy="47" r="9" fill="none" stroke="#7d8798" stroke-width="2.5"/></svg><span class="eq">=</span><img class="ico any " data-k="i7096ba22" src="data:," alt="Any resource"></span><span class="cc"><span class="ord">2nd</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 100" class="ico card"><rect x="4" y="4" width="62" height="92" rx="7" fill="#2b221c"/>
@@ -406,7 +409,7 @@ body{margin:0;background:#888}
 </div></div></div></div><div class="slot" style="--pc:#f8f6f0;--pc-ink:#2b221c"><div class="face face-b" data-colour="white"><div class="frame">
 <div class="cols-b">
   <section class="phase-col"><h2>Phases of a Round</h2><div class="phases"><div class="ph"><div class="pn"><div class="rn">I</div></div><img class="pimg p-hoplite" data-k="if956b65f" src="data:,">
-<div class="pb"><div class="pname">Recruitment <span class="lead"></span></div><ul><li>Buy cards</li><li>Buy hoplites</li><li>Upgrade units</li></ul>
+<div class="pb"><div class="pname">Recruit <span class="lead"></span></div><ul><li>Buy cards</li><li>Buy hoplites</li><li>Upgrade units</li></ul>
  <div class="box"><div class="bt">Card cost</div><div class="ccs"><span class="cc"><span class="ord">1st</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 100" class="ico card"><rect x="4" y="4" width="62" height="92" rx="7" fill="#2b221c"/>
 <rect x="9" y="9" width="52" height="82" rx="4" fill="#2a3342" stroke="#b8935a" stroke-width="2"/><rect x="13" y="13" width="44" height="13" rx="2" fill="#ecdfc5"/>
 <rect x="13" y="68" width="44" height="19" rx="2" fill="#ecdfc5"/><circle cx="35" cy="47" r="9" fill="none" stroke="#7d8798" stroke-width="2.5"/></svg><span class="eq">=</span><img class="ico any " data-k="i7096ba22" src="data:," alt="Any resource"></span><span class="cc"><span class="ord">2nd</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 100" class="ico card"><rect x="4" y="4" width="62" height="92" rx="7" fill="#2b221c"/>
@@ -456,7 +459,7 @@ body{margin:0;background:#888}
 </div></div></div></div><div class="slot" style="--pc:#2f5d93;--pc-ink:#f7ead2"><div class="face face-b" data-colour="blue"><div class="frame">
 <div class="cols-b">
   <section class="phase-col"><h2>Phases of a Round</h2><div class="phases"><div class="ph"><div class="pn"><div class="rn">I</div></div><img class="pimg p-hoplite" data-k="if956b65f" src="data:,">
-<div class="pb"><div class="pname">Recruitment <span class="lead"></span></div><ul><li>Buy cards</li><li>Buy hoplites</li><li>Upgrade units</li></ul>
+<div class="pb"><div class="pname">Recruit <span class="lead"></span></div><ul><li>Buy cards</li><li>Buy hoplites</li><li>Upgrade units</li></ul>
  <div class="box"><div class="bt">Card cost</div><div class="ccs"><span class="cc"><span class="ord">1st</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 100" class="ico card"><rect x="4" y="4" width="62" height="92" rx="7" fill="#2b221c"/>
 <rect x="9" y="9" width="52" height="82" rx="4" fill="#2a3342" stroke="#b8935a" stroke-width="2"/><rect x="13" y="13" width="44" height="13" rx="2" fill="#ecdfc5"/>
 <rect x="13" y="68" width="44" height="19" rx="2" fill="#ecdfc5"/><circle cx="35" cy="47" r="9" fill="none" stroke="#7d8798" stroke-width="2.5"/></svg><span class="eq">=</span><img class="ico any " data-k="i7096ba22" src="data:," alt="Any resource"></span><span class="cc"><span class="ord">2nd</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 100" class="ico card"><rect x="4" y="4" width="62" height="92" rx="7" fill="#2b221c"/>
@@ -678,7 +681,7 @@ body{margin:0;background:#888}
 </div></div></div></div></div><div class="sheet"><i class="crop v" style="left:50%;top:.04in"></i><i class="crop v" style="left:50%;bottom:.04in"></i><i class="crop h" style="top:50%;left:.04in"></i><i class="crop h" style="top:50%;right:.04in"></i><div class="slot" style="--pc:#6e4a2a;--pc-ink:#f7ead2"><div class="face face-b" data-colour="brown"><div class="frame">
 <div class="cols-b">
   <section class="phase-col"><h2>Phases of a Round</h2><div class="phases"><div class="ph"><div class="pn"><div class="rn">I</div></div><img class="pimg p-hoplite" data-k="if956b65f" src="data:,">
-<div class="pb"><div class="pname">Recruitment <span class="lead"></span></div><ul><li>Buy cards</li><li>Buy hoplites</li><li>Upgrade units</li></ul>
+<div class="pb"><div class="pname">Recruit <span class="lead"></span></div><ul><li>Buy cards</li><li>Buy hoplites</li><li>Upgrade units</li></ul>
  <div class="box"><div class="bt">Card cost</div><div class="ccs"><span class="cc"><span class="ord">1st</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 100" class="ico card"><rect x="4" y="4" width="62" height="92" rx="7" fill="#2b221c"/>
 <rect x="9" y="9" width="52" height="82" rx="4" fill="#2a3342" stroke="#b8935a" stroke-width="2"/><rect x="13" y="13" width="44" height="13" rx="2" fill="#ecdfc5"/>
 <rect x="13" y="68" width="44" height="19" rx="2" fill="#ecdfc5"/><circle cx="35" cy="47" r="9" fill="none" stroke="#7d8798" stroke-width="2.5"/></svg><span class="eq">=</span><img class="ico any " data-k="i7096ba22" src="data:," alt="Any resource"></span><span class="cc"><span class="ord">2nd</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 100" class="ico card"><rect x="4" y="4" width="62" height="92" rx="7" fill="#2b221c"/>
@@ -728,7 +731,7 @@ body{margin:0;background:#888}
 </div></div></div></div><div class="slot" style="--pc:#1d1a17;--pc-ink:#f3e6c8"><div class="face face-b" data-colour="black"><div class="frame">
 <div class="cols-b">
   <section class="phase-col"><h2>Phases of a Round</h2><div class="phases"><div class="ph"><div class="pn"><div class="rn">I</div></div><img class="pimg p-hoplite" data-k="if956b65f" src="data:,">
-<div class="pb"><div class="pname">Recruitment <span class="lead"></span></div><ul><li>Buy cards</li><li>Buy hoplites</li><li>Upgrade units</li></ul>
+<div class="pb"><div class="pname">Recruit <span class="lead"></span></div><ul><li>Buy cards</li><li>Buy hoplites</li><li>Upgrade units</li></ul>
  <div class="box"><div class="bt">Card cost</div><div class="ccs"><span class="cc"><span class="ord">1st</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 100" class="ico card"><rect x="4" y="4" width="62" height="92" rx="7" fill="#2b221c"/>
 <rect x="9" y="9" width="52" height="82" rx="4" fill="#2a3342" stroke="#b8935a" stroke-width="2"/><rect x="13" y="13" width="44" height="13" rx="2" fill="#ecdfc5"/>
 <rect x="13" y="68" width="44" height="19" rx="2" fill="#ecdfc5"/><circle cx="35" cy="47" r="9" fill="none" stroke="#7d8798" stroke-width="2.5"/></svg><span class="eq">=</span><img class="ico any " data-k="i7096ba22" src="data:," alt="Any resource"></span><span class="cc"><span class="ord">2nd</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 100" class="ico card"><rect x="4" y="4" width="62" height="92" rx="7" fill="#2b221c"/>
@@ -778,7 +781,7 @@ body{margin:0;background:#888}
 </div></div></div></div><div class="slot" style="--pc:#7d8189;--pc-ink:#f7ead2"><div class="face face-b" data-colour="grey"><div class="frame">
 <div class="cols-b">
   <section class="phase-col"><h2>Phases of a Round</h2><div class="phases"><div class="ph"><div class="pn"><div class="rn">I</div></div><img class="pimg p-hoplite" data-k="if956b65f" src="data:,">
-<div class="pb"><div class="pname">Recruitment <span class="lead"></span></div><ul><li>Buy cards</li><li>Buy hoplites</li><li>Upgrade units</li></ul>
+<div class="pb"><div class="pname">Recruit <span class="lead"></span></div><ul><li>Buy cards</li><li>Buy hoplites</li><li>Upgrade units</li></ul>
  <div class="box"><div class="bt">Card cost</div><div class="ccs"><span class="cc"><span class="ord">1st</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 100" class="ico card"><rect x="4" y="4" width="62" height="92" rx="7" fill="#2b221c"/>
 <rect x="9" y="9" width="52" height="82" rx="4" fill="#2a3342" stroke="#b8935a" stroke-width="2"/><rect x="13" y="13" width="44" height="13" rx="2" fill="#ecdfc5"/>
 <rect x="13" y="68" width="44" height="19" rx="2" fill="#ecdfc5"/><circle cx="35" cy="47" r="9" fill="none" stroke="#7d8798" stroke-width="2.5"/></svg><span class="eq">=</span><img class="ico any " data-k="i7096ba22" src="data:," alt="Any resource"></span><span class="cc"><span class="ord">2nd</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 100" class="ico card"><rect x="4" y="4" width="62" height="92" rx="7" fill="#2b221c"/>
@@ -828,7 +831,7 @@ body{margin:0;background:#888}
 </div></div></div></div><div class="slot" style="--pc:#e0ad2c;--pc-ink:#2b221c"><div class="face face-b" data-colour="yellow"><div class="frame">
 <div class="cols-b">
   <section class="phase-col"><h2>Phases of a Round</h2><div class="phases"><div class="ph"><div class="pn"><div class="rn">I</div></div><img class="pimg p-hoplite" data-k="if956b65f" src="data:,">
-<div class="pb"><div class="pname">Recruitment <span class="lead"></span></div><ul><li>Buy cards</li><li>Buy hoplites</li><li>Upgrade units</li></ul>
+<div class="pb"><div class="pname">Recruit <span class="lead"></span></div><ul><li>Buy cards</li><li>Buy hoplites</li><li>Upgrade units</li></ul>
  <div class="box"><div class="bt">Card cost</div><div class="ccs"><span class="cc"><span class="ord">1st</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 100" class="ico card"><rect x="4" y="4" width="62" height="92" rx="7" fill="#2b221c"/>
 <rect x="9" y="9" width="52" height="82" rx="4" fill="#2a3342" stroke="#b8935a" stroke-width="2"/><rect x="13" y="13" width="44" height="13" rx="2" fill="#ecdfc5"/>
 <rect x="13" y="68" width="44" height="19" rx="2" fill="#ecdfc5"/><circle cx="35" cy="47" r="9" fill="none" stroke="#7d8798" stroke-width="2.5"/></svg><span class="eq">=</span><img class="ico any " data-k="i7096ba22" src="data:," alt="Any resource"></span><span class="cc"><span class="ord">2nd</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 100" class="ico card"><rect x="4" y="4" width="62" height="92" rx="7" fill="#2b221c"/>
